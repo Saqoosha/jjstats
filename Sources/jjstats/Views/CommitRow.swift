@@ -147,25 +147,27 @@ struct TagBadge: View {
 struct SignatureBadge: View {
     let status: String
 
-    private var icon: String {
+    var icon: String {
         switch status {
-        case "good":
-            return "checkmark.seal.fill"
-        case "bad":
-            return "xmark.seal.fill"
-        default:
-            return "questionmark.seal.fill"
+        case "good": "checkmark.seal.fill"
+        case "bad": "xmark.seal.fill"
+        default: "questionmark.seal.fill"
         }
     }
 
-    private var color: Color {
+    var color: Color {
         switch status {
-        case "good":
-            return .green
-        case "bad":
-            return .red
-        default:
-            return .gray
+        case "good": .green
+        case "bad": .red
+        default: .gray
+        }
+    }
+
+    var text: String {
+        switch status {
+        case "good": "Verified"
+        case "bad": "Invalid"
+        default: status.capitalized
         }
     }
 

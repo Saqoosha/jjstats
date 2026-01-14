@@ -5,44 +5,15 @@ struct CommitDetailView: View {
     let changes: [FileChange]
     @Bindable var repository: JJRepository
 
-    private var formattedDate: String {
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        return formatter.string(from: commit.timestamp)
-    }
+        return formatter
+    }()
 
-    private func signatureIcon(for status: String) -> String {
-        switch status {
-        case "good":
-            return "checkmark.seal.fill"
-        case "bad":
-            return "xmark.seal.fill"
-        default:
-            return "questionmark.seal.fill"
-        }
-    }
-
-    private func signatureColor(for status: String) -> Color {
-        switch status {
-        case "good":
-            return .green
-        case "bad":
-            return .red
-        default:
-            return .gray
-        }
-    }
-
-    private func signatureText(for status: String) -> String {
-        switch status {
-        case "good":
-            return "Verified"
-        case "bad":
-            return "Invalid"
-        default:
-            return status.capitalized
-        }
+    private var formattedDate: String {
+        Self.dateFormatter.string(from: commit.timestamp)
     }
 
     var body: some View {
@@ -105,15 +76,16 @@ struct CommitDetailView: View {
                 .frame(height: 28)
 
                 if let signatureStatus = commit.signatureStatus {
+                    let badge = SignatureBadge(status: signatureStatus)
                     GridRow {
                         MetadataLabel(icon: "signature", text: "Signature")
                         HStack(spacing: 6) {
-                            Image(systemName: signatureIcon(for: signatureStatus))
+                            Image(systemName: badge.icon)
                                 .font(.system(size: 14))
-                                .foregroundStyle(signatureColor(for: signatureStatus))
-                            Text(signatureText(for: signatureStatus))
+                                .foregroundStyle(badge.color)
+                            Text(badge.text)
                                 .font(.system(size: 14))
-                                .foregroundStyle(signatureColor(for: signatureStatus))
+                                .foregroundStyle(badge.color)
                         }
                     }
                     .frame(height: 28)
@@ -293,7 +265,6 @@ struct EmptyDetailView: View {
         .background(Color(nsColor: .windowBackgroundColor))
     }
 }
-
 
 // MARK: - Flow Layout
 

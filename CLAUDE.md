@@ -22,14 +22,7 @@ macOS native app for viewing jj (Jujutsu) repository history.
 open build/DerivedData/Build/Products/Debug/jjstats.app
 ```
 
-### Using Swift Package Manager
-
-```bash
-swift build
-swift run
-```
-
-Note: SPM build won't show Dock icon. Use xcodebuild for proper app bundle.
+**Important:** Do NOT use `swift build` or `swift run` for this project. Always use `./scripts/build.sh` which uses xcodebuild for proper app bundle with resources and entitlements.
 
 ## Release Procedure
 

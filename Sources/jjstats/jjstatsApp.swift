@@ -50,7 +50,7 @@ extension View {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var openWindowAction: (() -> Void)?
 
-    func openRepository() {
+    @MainActor func openRepository() {
         // First try to find and show existing window
         let contentWindows = NSApp.windows.filter { window in
             // Filter out menu bar windows, panels, etc.
