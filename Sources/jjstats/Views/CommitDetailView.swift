@@ -12,6 +12,39 @@ struct CommitDetailView: View {
         return formatter.string(from: commit.timestamp)
     }
 
+    private func signatureIcon(for status: String) -> String {
+        switch status {
+        case "good":
+            return "checkmark.seal.fill"
+        case "bad":
+            return "xmark.seal.fill"
+        default:
+            return "questionmark.seal.fill"
+        }
+    }
+
+    private func signatureColor(for status: String) -> Color {
+        switch status {
+        case "good":
+            return .green
+        case "bad":
+            return .red
+        default:
+            return .gray
+        }
+    }
+
+    private func signatureText(for status: String) -> String {
+        switch status {
+        case "good":
+            return "Verified"
+        case "bad":
+            return "Invalid"
+        default:
+            return status.capitalized
+        }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -20,11 +53,6 @@ struct CommitDetailView: View {
 
                 // Description Section
                 descriptionSection
-
-                // Bookmarks Section
-                if !commit.bookmarks.isEmpty {
-                    bookmarksSection
-                }
 
                 // Changed Files Section
                 changedFilesSection
@@ -72,6 +100,46 @@ struct CommitDetailView: View {
                     Text(formattedDate)
                         .font(.system(size: 14))
                 }
+
+                if let signatureStatus = commit.signatureStatus {
+                    GridRow {
+                        MetadataLabel(icon: "signature", text: "Signature")
+                        HStack(spacing: 6) {
+                            Image(systemName: signatureIcon(for: signatureStatus))
+                                .foregroundStyle(signatureColor(for: signatureStatus))
+                            Text(signatureText(for: signatureStatus))
+                                .font(.system(size: 14))
+                                .foregroundStyle(signatureColor(for: signatureStatus))
+                        }
+                    }
+                }
+
+                if !commit.bookmarks.isEmpty {
+                    GridRow {
+                        MetadataLabel(icon: "bookmark", text: "Bookmarks")
+                        FlowLayout(spacing: 6) {
+                            ForEach(commit.localBookmarks, id: \.self) { bookmark in
+                                BookmarkBadge(name: bookmark, isSynced: commit.isBookmarkSynced(bookmark))
+                            }
+                            ForEach(commit.remoteBookmarks.filter { remote in
+                                !commit.localBookmarks.contains { remote.hasPrefix("\($0)@") }
+                            }, id: \.self) { bookmark in
+                                RemoteBookmarkBadge(name: bookmark)
+                            }
+                        }
+                    }
+                }
+
+                if !commit.tags.isEmpty {
+                    GridRow {
+                        MetadataLabel(icon: "tag", text: "Tags")
+                        FlowLayout(spacing: 6) {
+                            ForEach(commit.tags, id: \.self) { tag in
+                                TagBadge(name: tag)
+                            }
+                        }
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -89,38 +157,6 @@ struct CommitDetailView: View {
                     .foregroundStyle(commit.description.isEmpty ? .secondary : .primary)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-    }
-
-    // MARK: - Bookmarks Section
-
-    private var bookmarksSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: "Bookmarks")
-
-            GroupBox {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(commit.localBookmarks, id: \.self) { bookmark in
-                        BookmarkRow(
-                            name: bookmark,
-                            isSynced: commit.isBookmarkSynced(bookmark),
-                            isRemoteOnly: false
-                        )
-                    }
-
-                    // Remote-only bookmarks
-                    ForEach(commit.remoteBookmarks.filter { remote in
-                        !commit.localBookmarks.contains { remote.hasPrefix("\($0)@") }
-                    }, id: \.self) { bookmark in
-                        BookmarkRow(
-                            name: bookmark,
-                            isSynced: false,
-                            isRemoteOnly: true
-                        )
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
@@ -229,43 +265,6 @@ struct WorkingCopyBadge: View {
     }
 }
 
-struct BookmarkRow: View {
-    let name: String
-    let isSynced: Bool
-    let isRemoteOnly: Bool
-
-    private var icon: String {
-        if isRemoteOnly { return "cloud" }
-        return isSynced ? "checkmark.circle.fill" : "arrow.up.circle.fill"
-    }
-
-    private var iconColor: Color {
-        if isRemoteOnly { return .blue }
-        return isSynced ? .teal : .orange
-    }
-
-    private var statusText: String {
-        if isRemoteOnly { return "remote only" }
-        return isSynced ? "synced" : "not pushed"
-    }
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(iconColor)
-                .frame(width: 18)
-
-            Text(name)
-                .font(.system(size: 14, design: .monospaced))
-
-            Text("(\(statusText))")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
 // MARK: - Empty Detail View
 
 struct EmptyDetailView: View {
@@ -286,5 +285,69 @@ struct EmptyDetailView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(nsColor: .windowBackgroundColor))
+    }
+}
+
+
+// MARK: - Flow Layout
+
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = layout(subviews: subviews, proposal: proposal)
+        return result.size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = layout(subviews: subviews, proposal: proposal)
+        for (index, position) in result.positions.enumerated() {
+            subviews[index].place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
+        }
+    }
+
+    private func layout(subviews: Subviews, proposal: ProposedViewSize) -> (size: CGSize, positions: [CGPoint]) {
+        let maxWidth = proposal.width ?? .infinity
+        var positions: [CGPoint] = []
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        var totalHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+
+            if currentX + size.width > maxWidth && currentX > 0 {
+                currentX = 0
+                currentY += lineHeight + spacing
+                lineHeight = 0
+            }
+
+            positions.append(CGPoint(x: currentX, y: currentY))
+            currentX += size.width + spacing
+            lineHeight = max(lineHeight, size.height)
+            totalHeight = currentY + lineHeight
+        }
+
+        return (CGSize(width: maxWidth, height: totalHeight), positions)
+    }
+}
+
+// MARK: - Remote Bookmark Badge
+
+struct RemoteBookmarkBadge: View {
+    let name: String
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "cloud")
+                .font(.system(size: 11, weight: .medium))
+            Text(name)
+                .font(.system(size: 12, weight: .medium))
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .foregroundStyle(Color.blue)
     }
 }
