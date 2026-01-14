@@ -29,7 +29,7 @@ actor JJCommandRunner {
         author.email() ++ "\\x00" ++
         committer.timestamp().utc().format("%Y-%m-%dT%H:%M:%SZ") ++ "\\x00" ++
         if(current_working_copy, "true", "false") ++ "\\x00" ++
-        bookmarks ++ "\\x1e"
+        local_bookmarks ++ " " ++ remote_bookmarks ++ "\\x1e"
         """
 
     init(repoPath: String, jjPath: String = "/opt/homebrew/bin/jj") {
