@@ -74,7 +74,7 @@ struct CommitDetailView: View {
 
     private var metadataSection: some View {
         GroupBox {
-            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 0) {
                 GridRow {
                     MetadataLabel(icon: "number", text: "Change")
                     HStack(spacing: 8) {
@@ -86,6 +86,7 @@ struct CommitDetailView: View {
                         }
                     }
                 }
+                .frame(height: 28)
 
                 if !commit.author.isEmpty {
                     GridRow {
@@ -93,6 +94,7 @@ struct CommitDetailView: View {
                         Text(commit.author)
                             .font(.system(size: 14))
                     }
+                    .frame(height: 28)
                 }
 
                 GridRow {
@@ -100,18 +102,21 @@ struct CommitDetailView: View {
                     Text(formattedDate)
                         .font(.system(size: 14))
                 }
+                .frame(height: 28)
 
                 if let signatureStatus = commit.signatureStatus {
                     GridRow {
                         MetadataLabel(icon: "signature", text: "Signature")
                         HStack(spacing: 6) {
                             Image(systemName: signatureIcon(for: signatureStatus))
+                                .font(.system(size: 14))
                                 .foregroundStyle(signatureColor(for: signatureStatus))
                             Text(signatureText(for: signatureStatus))
                                 .font(.system(size: 14))
                                 .foregroundStyle(signatureColor(for: signatureStatus))
                         }
                     }
+                    .frame(height: 28)
                 }
 
                 if !commit.bookmarks.isEmpty {
@@ -128,6 +133,7 @@ struct CommitDetailView: View {
                             }
                         }
                     }
+                    .frame(minHeight: 28)
                 }
 
                 if !commit.tags.isEmpty {
@@ -139,6 +145,7 @@ struct CommitDetailView: View {
                             }
                         }
                     }
+                    .frame(minHeight: 28)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -233,14 +240,13 @@ struct MetadataLabel: View {
     let text: String
 
     var body: some View {
-        Label {
-            Text(text)
-                .foregroundStyle(.secondary)
-        } icon: {
+        HStack(spacing: 6) {
             Image(systemName: icon)
-                .foregroundStyle(.secondary)
+                .frame(width: 16)
+            Text(text)
         }
         .font(.system(size: 14))
+        .foregroundStyle(.secondary)
     }
 }
 
