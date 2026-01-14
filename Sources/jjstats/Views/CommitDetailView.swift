@@ -16,6 +16,16 @@ struct CommitDetailView: View {
         Self.dateFormatter.string(from: commit.timestamp)
     }
 
+    private var authorDisplayString: String {
+        if !commit.authorName.isEmpty && !commit.authorEmail.isEmpty {
+            return "\(commit.authorName) <\(commit.authorEmail)>"
+        } else if !commit.authorName.isEmpty {
+            return commit.authorName
+        } else {
+            return commit.authorEmail
+        }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -59,10 +69,10 @@ struct CommitDetailView: View {
                 }
                 .frame(height: 28)
 
-                if !commit.author.isEmpty {
+                if !commit.authorName.isEmpty || !commit.authorEmail.isEmpty {
                     GridRow {
                         MetadataLabel(icon: "person", text: "Author")
-                        Text(commit.author)
+                        Text(authorDisplayString)
                             .font(.system(size: 14))
                     }
                     .frame(height: 28)

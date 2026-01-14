@@ -4,7 +4,8 @@ struct Commit: Identifiable, Equatable {
     let id: String  // commit_id
     let changeId: String
     let description: String
-    let author: String
+    let authorName: String
+    let authorEmail: String
     let timestamp: Date
     let isWorkingCopy: Bool
     let bookmarks: [String]  // e.g., ["main", "main@origin"]

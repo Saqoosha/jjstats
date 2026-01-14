@@ -26,6 +26,7 @@ actor JJCommandRunner {
     private static let logTemplate = """
         commit_id ++ "\\x00" ++ change_id ++ "\\x00" ++
         description.first_line() ++ "\\x00" ++
+        author.name() ++ "\\x00" ++
         author.email() ++ "\\x00" ++
         committer.timestamp().utc().format("%Y-%m-%dT%H:%M:%SZ") ++ "\\x00" ++
         if(current_working_copy, "true", "false") ++ "\\x00" ++
@@ -114,17 +115,18 @@ actor JJCommandRunner {
 
         for record in records {
             let fields = record.split(separator: "\u{00}", omittingEmptySubsequences: false)
-            guard fields.count >= 9 else { continue }
+            guard fields.count >= 10 else { continue }
 
             let commitId = String(fields[0])
             let changeId = String(fields[1])
             let description = String(fields[2])
-            let author = String(fields[3])
-            let timestampStr = String(fields[4]).trimmingCharacters(in: .whitespacesAndNewlines)
-            let isWorkingCopy = String(fields[5]).trimmingCharacters(in: .whitespacesAndNewlines) == "true"
-            let bookmarksStr = String(fields[6]).trimmingCharacters(in: .whitespacesAndNewlines)
-            let tagsStr = String(fields[7]).trimmingCharacters(in: .whitespacesAndNewlines)
-            let signatureStr = String(fields[8]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let authorName = String(fields[3])
+            let authorEmail = String(fields[4])
+            let timestampStr = String(fields[5]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let isWorkingCopy = String(fields[6]).trimmingCharacters(in: .whitespacesAndNewlines) == "true"
+            let bookmarksStr = String(fields[7]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let tagsStr = String(fields[8]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let signatureStr = String(fields[9]).trimmingCharacters(in: .whitespacesAndNewlines)
 
             let timestamp = dateFormatter.date(from: timestampStr) ?? Date()
 
@@ -141,7 +143,8 @@ actor JJCommandRunner {
                 id: commitId,
                 changeId: changeId,
                 description: description,
-                author: author,
+                authorName: authorName,
+                authorEmail: authorEmail,
                 timestamp: timestamp,
                 isWorkingCopy: isWorkingCopy,
                 bookmarks: bookmarks,
