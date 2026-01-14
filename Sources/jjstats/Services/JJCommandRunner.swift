@@ -29,7 +29,8 @@ actor JJCommandRunner {
         author.email() ++ "\\x00" ++
         committer.timestamp().utc().format("%Y-%m-%dT%H:%M:%SZ") ++ "\\x00" ++
         if(current_working_copy, "true", "false") ++ "\\x00" ++
-        local_bookmarks ++ " " ++ remote_bookmarks ++ "\\x1e"
+        local_bookmarks ++ " " ++ remote_bookmarks ++ "\\x00" ++
+        tags ++ "\\x1e"
         """
 
     init(repoPath: String, jjPath: String = "/opt/homebrew/bin/jj") {
@@ -112,7 +113,7 @@ actor JJCommandRunner {
 
         for record in records {
             let fields = record.split(separator: "\u{00}", omittingEmptySubsequences: false)
-            guard fields.count >= 7 else { continue }
+            guard fields.count >= 8 else { continue }
 
             let commitId = String(fields[0])
             let changeId = String(fields[1])
@@ -121,11 +122,15 @@ actor JJCommandRunner {
             let timestampStr = String(fields[4]).trimmingCharacters(in: .whitespacesAndNewlines)
             let isWorkingCopy = String(fields[5]).trimmingCharacters(in: .whitespacesAndNewlines) == "true"
             let bookmarksStr = String(fields[6]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let tagsStr = String(fields[7]).trimmingCharacters(in: .whitespacesAndNewlines)
 
             let timestamp = dateFormatter.date(from: timestampStr) ?? Date()
 
             // Parse bookmarks: "main main@origin" -> ["main", "main@origin"]
             let bookmarks = bookmarksStr.isEmpty ? [] : bookmarksStr.split(separator: " ").map(String.init)
+
+            // Parse tags: "v1.0.0 v1.0.1" -> ["v1.0.0", "v1.0.1"]
+            let tags = tagsStr.isEmpty ? [] : tagsStr.split(separator: " ").map(String.init)
 
             commits.append(Commit(
                 id: commitId,
@@ -134,7 +139,8 @@ actor JJCommandRunner {
                 author: author,
                 timestamp: timestamp,
                 isWorkingCopy: isWorkingCopy,
-                bookmarks: bookmarks
+                bookmarks: bookmarks,
+                tags: tags
             ))
         }
 

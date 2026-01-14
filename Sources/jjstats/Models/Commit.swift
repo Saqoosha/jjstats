@@ -8,6 +8,7 @@ struct Commit: Identifiable, Equatable {
     let timestamp: Date
     let isWorkingCopy: Bool
     let bookmarks: [String]  // e.g., ["main", "main@origin"]
+    let tags: [String]  // git tags, e.g., ["v1.0.0"]
 
     var shortChangeId: String {
         String(changeId.prefix(8))

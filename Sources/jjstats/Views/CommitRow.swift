@@ -36,12 +36,17 @@ struct CommitRow: View {
                     }
                 }
 
-                // Second line: Description + Bookmarks
+                // Second line: Description + Tags + Bookmarks
                 HStack(spacing: 6) {
                     Text(commit.shortDescription)
                         .font(.system(size: 14))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
+
+                    // Tag badges
+                    ForEach(commit.tags, id: \.self) { tag in
+                        TagBadge(name: tag)
+                    }
 
                     // Bookmark badges
                     ForEach(commit.localBookmarks, id: \.self) { bookmark in
@@ -110,5 +115,24 @@ struct BookmarkBadge: View {
         .padding(.vertical, 3)
         .background(backgroundColor, in: RoundedRectangle(cornerRadius: 5, style: .continuous))
         .foregroundStyle(foregroundColor)
+    }
+}
+
+// MARK: - Tag Badge
+
+struct TagBadge: View {
+    let name: String
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "tag.fill")
+                .font(.system(size: 10, weight: .medium))
+            Text(name)
+                .font(.system(size: 12, weight: .medium))
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(Color.purple.opacity(0.12), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .foregroundStyle(Color.purple)
     }
 }
