@@ -6,6 +6,7 @@ A simple macOS app to view [jj (Jujutsu)](https://github.com/martinvonz/jj) repo
 
 - View commit history in a clean sidebar
 - See changed files for each commit
+- **Inline diff view** - Click on a file to see line-by-line changes (GitHub-style)
 - Auto-refresh when repository changes (via FSEvents)
 - Native macOS app built with SwiftUI
 
@@ -38,6 +39,7 @@ Note: Running via SPM will not show a Dock icon. Use xcodebuild for a proper app
 2. Click "Open Repository..." or use Cmd+O
 3. Select a folder containing a jj repository (has `.jj` directory)
 4. Browse commit history and view changed files
+5. Click on a file to view its diff (click again to collapse)
 
 ## Project Structure
 
@@ -47,16 +49,18 @@ Sources/jjstats/
 ├── Models/
 │   ├── Commit.swift          # Commit model
 │   ├── FileChange.swift      # File change model
+│   ├── FileDiff.swift        # Diff model (hunks, lines, stats)
 │   └── JJRepository.swift    # Repository state (@Observable)
 ├── Services/
-│   ├── JJCommandRunner.swift # jj CLI wrapper
+│   ├── JJCommandRunner.swift # jj CLI wrapper + diff parser
 │   └── FileWatcher.swift     # FSEvents wrapper
 └── Views/
     ├── ContentView.swift     # Main view with folder picker
     ├── CommitListView.swift  # Sidebar commit list
     ├── CommitRow.swift       # Single commit row
     ├── CommitDetailView.swift # Detail view
-    └── FileChangeRow.swift   # File change row
+    ├── FileChangeRow.swift   # File change row
+    └── FileDiffView.swift    # Inline diff view
 ```
 
 ## License
