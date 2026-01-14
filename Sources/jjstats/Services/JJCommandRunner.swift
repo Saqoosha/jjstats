@@ -28,7 +28,8 @@ actor JJCommandRunner {
         description.first_line() ++ "\\x00" ++
         author.email() ++ "\\x00" ++
         committer.timestamp().utc().format("%Y-%m-%dT%H:%M:%SZ") ++ "\\x00" ++
-        if(current_working_copy, "true", "false") ++ "\\x1e"
+        if(current_working_copy, "true", "false") ++ "\\x00" ++
+        bookmarks ++ "\\x1e"
         """
 
     init(repoPath: String, jjPath: String = "/opt/homebrew/bin/jj") {
@@ -100,7 +101,7 @@ actor JJCommandRunner {
 
         for record in records {
             let fields = record.split(separator: "\u{00}", omittingEmptySubsequences: false)
-            guard fields.count >= 6 else { continue }
+            guard fields.count >= 7 else { continue }
 
             let commitId = String(fields[0])
             let changeId = String(fields[1])
@@ -108,8 +109,12 @@ actor JJCommandRunner {
             let author = String(fields[3])
             let timestampStr = String(fields[4]).trimmingCharacters(in: .whitespacesAndNewlines)
             let isWorkingCopy = String(fields[5]).trimmingCharacters(in: .whitespacesAndNewlines) == "true"
+            let bookmarksStr = String(fields[6]).trimmingCharacters(in: .whitespacesAndNewlines)
 
             let timestamp = dateFormatter.date(from: timestampStr) ?? Date()
+
+            // Parse bookmarks: "main main@origin" -> ["main", "main@origin"]
+            let bookmarks = bookmarksStr.isEmpty ? [] : bookmarksStr.split(separator: " ").map(String.init)
 
             commits.append(Commit(
                 id: commitId,
@@ -117,7 +122,8 @@ actor JJCommandRunner {
                 description: description,
                 author: author,
                 timestamp: timestamp,
-                isWorkingCopy: isWorkingCopy
+                isWorkingCopy: isWorkingCopy,
+                bookmarks: bookmarks
             ))
         }
 

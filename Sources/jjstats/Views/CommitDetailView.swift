@@ -63,6 +63,46 @@ struct CommitDetailView: View {
                         .textSelection(.enabled)
                 }
 
+                // Bookmarks section (only show if there are bookmarks)
+                if !commit.bookmarks.isEmpty {
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Bookmarks")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(commit.localBookmarks, id: \.self) { bookmark in
+                                HStack(spacing: 6) {
+                                    Image(systemName: commit.isBookmarkSynced(bookmark) ? "checkmark.circle.fill" : "arrow.up.circle")
+                                        .foregroundStyle(commit.isBookmarkSynced(bookmark) ? .teal : .orange)
+                                    Text(bookmark)
+                                        .font(.system(.body, design: .monospaced))
+                                    Text(commit.isBookmarkSynced(bookmark) ? "(synced)" : "(not pushed)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+
+                            // Show remote-only bookmarks
+                            ForEach(commit.remoteBookmarks.filter { remote in
+                                !commit.localBookmarks.contains { remote.hasPrefix("\($0)@") }
+                            }, id: \.self) { bookmark in
+                                HStack(spacing: 6) {
+                                    Image(systemName: "cloud")
+                                        .foregroundStyle(.blue)
+                                    Text(bookmark)
+                                        .font(.system(.body, design: .monospaced))
+                                    Text("(remote only)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Divider()
 
                 // Changed files
