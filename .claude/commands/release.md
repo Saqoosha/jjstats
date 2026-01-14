@@ -1,67 +1,87 @@
 # Release jjstats
 
-Release a new version of jjstats with auto-generated release notes.
-
-## Arguments
-
-- `$ARGUMENTS` - Version number (e.g., 1.0.1)
+Release a new version of jjstats with automatic version bump and release notes.
 
 ## Task
 
-1. **Run release script**
-   ```bash
-   ./scripts/release.sh $ARGUMENTS
-   ```
-   This builds, notarizes, creates DMG, commits, tags, and creates GitHub Release.
+### 1. Get current version and changes
 
-2. **Get the diff from previous tag**
-   ```bash
-   # Find previous tag
-   git tag --sort=-version:refname | head -2 | tail -1
+```bash
+# Get current version from project.yml
+grep 'MARKETING_VERSION:' project.yml
 
-   # Get diff
-   git diff <previous_tag>..v$ARGUMENTS
-   ```
+# Get previous tag
+git tag --sort=-version:refname | head -1
 
-3. **Analyze the diff and generate release notes**
-   Based on the code changes, write a release note following this format:
+# Get diff from previous tag (or initial if no tags)
+git diff <previous_tag>..HEAD
+```
 
-   ```markdown
-   ## jjstats X.Y.Z
+### 2. Analyze diff and determine version bump
 
-   Brief description of this release.
+Based on the changes, determine the appropriate version bump:
 
-   ### Features (if new features added)
-   - New feature description
+- **Major (X.0.0)**: Breaking changes, major rewrites, incompatible API changes
+- **Minor (X.Y.0)**: New features, significant improvements, new functionality
+- **Patch (X.Y.Z)**: Bug fixes, small improvements, documentation, refactoring
 
-   ### Changes (if improvements made)
-   - Change or improvement description
+Examples:
+- New UI feature → Minor
+- Bug fix → Patch
+- Build/release scripts added → Patch (infrastructure)
+- New command or major feature → Minor
+- Complete rewrite → Major
 
-   ### Bug Fixes (if bugs fixed)
-   - Fixed issue description
+### 3. Run release script with determined version
 
-   ### Requirements
-   - macOS 14.0 (Sonoma) or later
-   - jj (Jujutsu) installed at `/opt/homebrew/bin/jj`
+```bash
+./scripts/release.sh <new_version>
+```
 
-   ### Installation
-   1. Download `jjstats.dmg`
-   2. Open the DMG and drag jjstats to Applications
-   3. Launch and select a jj repository folder
-   ```
+This builds, notarizes, creates DMG, commits, tags, and creates GitHub Release.
 
-4. **Update GitHub Release**
-   ```bash
-   gh release edit v$ARGUMENTS --notes "<generated notes>"
-   ```
+### 4. Generate release notes from diff
 
-5. **Show the release URL**
-   ```
-   https://github.com/Saqoosha/jjstats/releases/tag/v$ARGUMENTS
-   ```
+Analyze the actual code changes and write user-friendly release notes:
+
+```markdown
+## jjstats X.Y.Z
+
+Brief description of this release.
+
+### Features (if new features added)
+- New feature description
+
+### Changes (if improvements made)
+- Change or improvement description
+
+### Bug Fixes (if bugs fixed)
+- Fixed issue description
+
+### Requirements
+- macOS 14.0 (Sonoma) or later
+- jj (Jujutsu) installed at `/opt/homebrew/bin/jj`
+
+### Installation
+1. Download `jjstats.dmg`
+2. Open the DMG and drag jjstats to Applications
+3. Launch and select a jj repository folder
+```
+
+### 5. Update GitHub Release
+
+```bash
+gh release edit v<new_version> --notes "<generated notes>"
+```
+
+### 6. Show result
+
+Display:
+- New version number
+- Release URL: `https://github.com/Saqoosha/jjstats/releases/tag/v<new_version>`
 
 ## Notes
 
-- Commit messages should describe what changed and why
-- The agent will read the actual code diff to understand changes
-- Release notes should be user-friendly, not just commit messages
+- Always analyze the diff first before deciding version
+- Be conservative: when in doubt, use Patch
+- Release notes should describe user-visible changes, not implementation details
