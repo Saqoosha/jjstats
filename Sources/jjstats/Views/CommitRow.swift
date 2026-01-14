@@ -4,19 +4,46 @@ struct CommitRow: View {
     let commit: Commit
     let isSelected: Bool
 
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
+
+    private var relativeTime: String {
+        Self.relativeFormatter.localizedString(for: commit.timestamp, relativeTo: Date())
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             // Working copy indicator - modern dot style
             WorkingCopyIndicator(isWorkingCopy: commit.isWorkingCopy)
 
             VStack(alignment: .leading, spacing: 4) {
-                // Change ID + Bookmarks
+                // First line: Change ID + Timestamp
                 HStack(spacing: 6) {
                     Text(commit.shortChangeId)
                         .font(.system(size: 14, weight: commit.isWorkingCopy ? .semibold : .regular, design: .monospaced))
                         .foregroundStyle(commit.isWorkingCopy ? .primary : .secondary)
 
-                    // Bookmark badges - more subtle design
+                    Spacer()
+
+                    // Timestamp (auto-updates every minute)
+                    TimelineView(.periodic(from: .now, by: 60)) { _ in
+                        Text(relativeTime)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                // Second line: Description + Bookmarks
+                HStack(spacing: 6) {
+                    Text(commit.shortDescription)
+                        .font(.system(size: 14))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+
+                    // Bookmark badges
                     ForEach(commit.localBookmarks, id: \.self) { bookmark in
                         BookmarkBadge(
                             name: bookmark,
@@ -24,15 +51,7 @@ struct CommitRow: View {
                         )
                     }
                 }
-
-                // Description
-                Text(commit.shortDescription)
-                    .font(.system(size: 14))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
             }
-
-            Spacer()
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
