@@ -69,8 +69,21 @@ final class JJRepository {
 
             print("[JJRepository] Loaded \(commits.count) commits, \(currentChanges.count) changes")
 
-            // If a commit is selected, refresh its changes too
-            if let selected = selectedCommit {
+            // Auto-select working copy if nothing selected or selection no longer exists
+            let currentSelection = selectedCommit
+            let selectionStillExists = currentSelection.map { sel in
+                commits.contains { $0.id == sel.id }
+            } ?? false
+
+            if currentSelection == nil || !selectionStillExists {
+                // Select working copy (first commit with isWorkingCopy flag, or just first commit)
+                if let workingCopy = commits.first(where: { $0.isWorkingCopy }) ?? commits.first {
+                    selectedCommit = workingCopy
+                    selectedCommitChanges = try await runner.fetchDiff(revision: workingCopy.changeId)
+                    print("[JJRepository] Auto-selected working copy: \(workingCopy.shortChangeId)")
+                }
+            } else if let selected = currentSelection {
+                // Refresh changes for current selection
                 selectedCommitChanges = try await runner.fetchDiff(revision: selected.changeId)
             }
         } catch {
