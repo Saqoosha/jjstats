@@ -20,21 +20,10 @@ A simple macOS app to view [jj (Jujutsu)](https://github.com/martinvonz/jj) repo
 
 ## Building
 
-### Using xcodegen (recommended)
-
 ```bash
 xcodegen generate
 xcodebuild -project jjstats.xcodeproj -scheme jjstats -configuration Debug build
 ```
-
-### Using Swift Package Manager
-
-```bash
-swift build
-swift run
-```
-
-Note: Running via SPM will not show a Dock icon. Use xcodebuild for a proper app bundle.
 
 ## Usage
 
