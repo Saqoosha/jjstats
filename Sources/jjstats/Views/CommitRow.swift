@@ -36,12 +36,17 @@ struct CommitRow: View {
                     }
                 }
 
-                // Second line: Description + Tags + Bookmarks
+                // Second line: Description + Signature + Tags + Bookmarks
                 HStack(spacing: 6) {
                     Text(commit.shortDescription)
                         .font(.system(size: 14))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
+
+                    // Signature indicator
+                    if commit.isSigned {
+                        SignatureBadge(status: commit.signatureStatus ?? "unknown")
+                    }
 
                     // Tag badges
                     ForEach(commit.tags, id: \.self) { tag in
@@ -134,5 +139,40 @@ struct TagBadge: View {
         .padding(.vertical, 3)
         .background(Color.purple.opacity(0.12), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
         .foregroundStyle(Color.purple)
+    }
+}
+
+// MARK: - Signature Badge
+
+struct SignatureBadge: View {
+    let status: String
+
+    private var icon: String {
+        switch status {
+        case "good":
+            return "checkmark.seal.fill"
+        case "bad":
+            return "xmark.seal.fill"
+        default:
+            return "questionmark.seal.fill"
+        }
+    }
+
+    private var color: Color {
+        switch status {
+        case "good":
+            return .green
+        case "bad":
+            return .red
+        default:
+            return .gray
+        }
+    }
+
+    var body: some View {
+        Image(systemName: icon)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundStyle(color)
+            .help(status == "good" ? "Signed (verified)" : "Signed (\(status))")
     }
 }

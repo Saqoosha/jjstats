@@ -30,7 +30,8 @@ actor JJCommandRunner {
         committer.timestamp().utc().format("%Y-%m-%dT%H:%M:%SZ") ++ "\\x00" ++
         if(current_working_copy, "true", "false") ++ "\\x00" ++
         local_bookmarks ++ " " ++ remote_bookmarks ++ "\\x00" ++
-        tags ++ "\\x1e"
+        tags ++ "\\x00" ++
+        if(signature, signature.status(), "") ++ "\\x1e"
         """
 
     init(repoPath: String, jjPath: String = "/opt/homebrew/bin/jj") {
@@ -113,7 +114,7 @@ actor JJCommandRunner {
 
         for record in records {
             let fields = record.split(separator: "\u{00}", omittingEmptySubsequences: false)
-            guard fields.count >= 8 else { continue }
+            guard fields.count >= 9 else { continue }
 
             let commitId = String(fields[0])
             let changeId = String(fields[1])
@@ -123,6 +124,7 @@ actor JJCommandRunner {
             let isWorkingCopy = String(fields[5]).trimmingCharacters(in: .whitespacesAndNewlines) == "true"
             let bookmarksStr = String(fields[6]).trimmingCharacters(in: .whitespacesAndNewlines)
             let tagsStr = String(fields[7]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let signatureStr = String(fields[8]).trimmingCharacters(in: .whitespacesAndNewlines)
 
             let timestamp = dateFormatter.date(from: timestampStr) ?? Date()
 
@@ -132,6 +134,9 @@ actor JJCommandRunner {
             // Parse tags: "v1.0.0 v1.0.1" -> ["v1.0.0", "v1.0.1"]
             let tags = tagsStr.isEmpty ? [] : tagsStr.split(separator: " ").map(String.init)
 
+            // Parse signature status: "" = unsigned, "good" = valid, etc.
+            let signatureStatus: String? = signatureStr.isEmpty ? nil : signatureStr
+
             commits.append(Commit(
                 id: commitId,
                 changeId: changeId,
@@ -140,7 +145,8 @@ actor JJCommandRunner {
                 timestamp: timestamp,
                 isWorkingCopy: isWorkingCopy,
                 bookmarks: bookmarks,
-                tags: tags
+                tags: tags,
+                signatureStatus: signatureStatus
             ))
         }
 

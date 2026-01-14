@@ -9,6 +9,7 @@ struct Commit: Identifiable, Equatable {
     let isWorkingCopy: Bool
     let bookmarks: [String]  // e.g., ["main", "main@origin"]
     let tags: [String]  // git tags, e.g., ["v1.0.0"]
+    let signatureStatus: String?  // nil = unsigned, "good" = valid, "bad" = invalid
 
     var shortChangeId: String {
         String(changeId.prefix(8))
@@ -16,6 +17,14 @@ struct Commit: Identifiable, Equatable {
 
     var shortDescription: String {
         description.isEmpty ? "(no description)" : description
+    }
+
+    var isSigned: Bool {
+        signatureStatus != nil
+    }
+
+    var hasValidSignature: Bool {
+        signatureStatus == "good"
     }
 
     // Local bookmarks (without @remote suffix)
