@@ -1,22 +1,26 @@
 import Foundation
+import os.log
+
+private let logger = Logger(subsystem: "sh.saqoo.jjstats", category: "FileWatcher")
 
 final class FileWatcher: @unchecked Sendable {
     private var stream: FSEventStreamRef?
-    private let path: String
+    private let paths: [String]
     private let callback: @Sendable () -> Void
     private let queue: DispatchQueue
     private var debounceWorkItem: DispatchWorkItem?
     private let debounceInterval: TimeInterval
 
-    init(path: String, debounceInterval: TimeInterval = 1.0, callback: @escaping @Sendable () -> Void) {
-        self.path = path
+    init(paths: [String], debounceInterval: TimeInterval = 1.0, callback: @escaping @Sendable () -> Void) {
+        self.paths = paths
         self.callback = callback
         self.debounceInterval = debounceInterval
         self.queue = DispatchQueue(label: "com.jjstats.filewatcher", qos: .utility)
     }
 
     func start() {
-        let pathsToWatch = [path] as CFArray
+        logger.info("Starting file watcher for paths: \(self.paths)")
+        let pathsToWatch = paths as CFArray
 
         var context = FSEventStreamContext(
             version: 0,
@@ -34,9 +38,14 @@ final class FileWatcher: @unchecked Sendable {
 
         stream = FSEventStreamCreate(
             nil,
-            { (_, info, _, _, _, _) in
+            { (_, info, numEvents, eventPaths, _, _) in
                 guard let info = info else { return }
                 let watcher = Unmanaged<FileWatcher>.fromOpaque(info).takeUnretainedValue()
+                if let paths = unsafeBitCast(eventPaths, to: NSArray.self) as? [String] {
+                    for path in paths {
+                        logger.info("FSEvent: \(path, privacy: .public)")
+                    }
+                }
                 watcher.debouncedCallback()
             },
             &context,
@@ -56,6 +65,7 @@ final class FileWatcher: @unchecked Sendable {
         debounceWorkItem?.cancel()
 
         let workItem = DispatchWorkItem { [weak self] in
+            logger.info("Debounce complete, triggering callback")
             self?.callback()
         }
         debounceWorkItem = workItem

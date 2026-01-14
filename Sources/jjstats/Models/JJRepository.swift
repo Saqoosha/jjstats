@@ -1,5 +1,8 @@
 import Foundation
+import os.log
 import SwiftUI
+
+private let logger = Logger(subsystem: "sh.saqoo.jjstats", category: "JJRepository")
 
 @MainActor
 @Observable
@@ -28,9 +31,14 @@ final class JJRepository {
     func start() async {
         commandRunner = JJCommandRunner(repoPath: path)
 
-        // Start file watcher on .jj directory
-        let jjPath = (path as NSString).appendingPathComponent(".jj")
-        fileWatcher = FileWatcher(path: jjPath, debounceInterval: 2.0) { [weak self] in
+        // Watch only op_heads/heads which changes on real jj operations
+        // (jj new, jj commit, jj edit, etc.)
+        // Do NOT watch working_copy - it has lock files that change on every jj command
+        let jjPath = path as NSString
+        let watchPaths = [
+            jjPath.appendingPathComponent(".jj/repo/op_heads/heads"),
+        ]
+        fileWatcher = FileWatcher(paths: watchPaths, debounceInterval: 0.5) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.refresh()
             }
@@ -51,7 +59,7 @@ final class JJRepository {
 
         // Skip if already refreshing
         guard !isRefreshing else {
-            print("[JJRepository] Skipping refresh - already in progress")
+            logger.info(" Skipping refresh - already in progress")
             return
         }
 
@@ -59,7 +67,7 @@ final class JJRepository {
         isLoading = true
         error = nil
 
-        print("[JJRepository] Starting refresh...")
+        logger.info(" Starting refresh...")
 
         do {
             async let fetchedCommits = runner.fetchLog()
@@ -68,7 +76,9 @@ final class JJRepository {
             commits = try await fetchedCommits
             currentChanges = try await fetchedStatus
 
-            print("[JJRepository] Loaded \(commits.count) commits, \(currentChanges.count) changes")
+            let commitCount = commits.count
+            let changeCount = currentChanges.count
+            logger.info("Loaded \(commitCount) commits, \(changeCount) changes")
 
             // Check if working copy changed
             let newWorkingCopy = commits.first(where: { $0.isWorkingCopy }) ?? commits.first
@@ -88,14 +98,14 @@ final class JJRepository {
                 if let workingCopy = newWorkingCopy {
                     selectedCommit = workingCopy
                     selectedCommitChanges = try await runner.fetchDiff(revision: workingCopy.changeId)
-                    print("[JJRepository] Auto-selected working copy: \(workingCopy.shortChangeId)")
+                    logger.info(" Auto-selected working copy: \(workingCopy.shortChangeId)")
                 }
             } else if let selected = currentSelection {
                 // Refresh changes for current selection
                 selectedCommitChanges = try await runner.fetchDiff(revision: selected.changeId)
             }
         } catch {
-            print("[JJRepository] Error: \(error)")
+            logger.info(" Error: \(error)")
             self.error = error
         }
 
