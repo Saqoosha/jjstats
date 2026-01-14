@@ -100,6 +100,8 @@ final class JJRepository {
             if currentSelection == nil || workingCopyChanged || !selectionStillExists {
                 if let workingCopy = newWorkingCopy {
                     selectedCommit = workingCopy
+                    selectedFileChange = nil
+                    selectedFileDiff = nil
                     selectedCommitChanges = try await runner.fetchDiff(revision: workingCopy.changeId)
                     logger.info(" Auto-selected working copy: \(workingCopy.shortChangeId)")
                 }
