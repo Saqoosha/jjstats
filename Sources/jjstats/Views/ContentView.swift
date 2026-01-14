@@ -3,6 +3,7 @@ import AppKit
 
 struct ContentView: View {
     @State private var repository: JJRepository?
+    @AppStorage("lastRepositoryPath") private var lastRepositoryPath: String?
 
     var body: some View {
         Group {
@@ -17,6 +18,11 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .openRepository)) { _ in
             openFolderPicker()
+        }
+        .onAppear {
+            if let path = lastRepositoryPath {
+                openRepository(at: path)
+            }
         }
     }
 
@@ -52,6 +58,7 @@ struct ContentView: View {
 
         let repo = JJRepository(path: path)
         repository = repo
+        lastRepositoryPath = path
 
         Task {
             await repo.start()
