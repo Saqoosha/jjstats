@@ -108,6 +108,37 @@ xcrun notarytool store-credentials "notarytool-profile" \
 
 This project uses `jj` (Jujutsu) instead of git. Use `jj` commands for all VCS operations.
 
+### PR Workflow with jj
+
+```bash
+# 1. Create bookmark (branch) pointing to your commit
+jj bookmark create <branch-name> -r @-
+
+# 2. Push to remote (--allow-new for new branches)
+jj git push --bookmark <branch-name> --allow-new
+
+# 3. Create PR with gh CLI
+gh pr create --base main --head <branch-name>
+```
+
+After PR is merged (with squash):
+
+```bash
+# 1. Fetch remote changes
+jj git fetch
+
+# 2. Rebase working copy onto updated main
+jj rebase -d main
+
+# 3. Abandon the now-empty original commit (squash creates new commit on GitHub)
+jj abandon <original-commit>
+
+# 4. Delete the remote branch
+jj git push --deleted
+```
+
+Note: Squash merge creates a new commit on GitHub, leaving the original local commit orphaned. Use `--rebase` or `--merge` instead of `--squash` for simpler cleanup.
+
 ## Project Structure
 
 - `Sources/jjstats/` - Main app source
