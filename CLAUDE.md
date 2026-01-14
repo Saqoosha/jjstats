@@ -82,6 +82,34 @@ gh release create vX.Y.Z build/jjstats.dmg \
   --notes "Release notes here"
 ```
 
+### Release Notes Format
+
+```markdown
+## jjstats X.Y.Z
+
+Brief description of this release.
+
+### Features (for major releases)
+- New feature 1
+- New feature 2
+
+### Changes
+- Change or improvement 1
+- Change or improvement 2
+
+### Bug Fixes (if applicable)
+- Fixed issue with X
+
+### Requirements
+- macOS 14.0 (Sonoma) or later
+- jj (Jujutsu) installed at `/opt/homebrew/bin/jj`
+
+### Installation
+1. Download `jjstats.dmg`
+2. Open the DMG and drag jjstats to Applications
+3. Launch and select a jj repository folder
+```
+
 ### First-time Setup for Notarization
 
 ```bash
