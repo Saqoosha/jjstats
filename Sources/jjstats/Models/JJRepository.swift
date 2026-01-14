@@ -15,6 +15,7 @@ final class JJRepository {
     private var commandRunner: JJCommandRunner?
     private var fileWatcher: FileWatcher?
     private var isRefreshing = false
+    private var lastWorkingCopyId: String?
 
     var workingCopyCommit: Commit? {
         commits.first { $0.isWorkingCopy }
@@ -69,15 +70,22 @@ final class JJRepository {
 
             print("[JJRepository] Loaded \(commits.count) commits, \(currentChanges.count) changes")
 
-            // Auto-select working copy if nothing selected or selection no longer exists
+            // Check if working copy changed
+            let newWorkingCopy = commits.first(where: { $0.isWorkingCopy }) ?? commits.first
+            let workingCopyChanged = newWorkingCopy?.id != lastWorkingCopyId
+            lastWorkingCopyId = newWorkingCopy?.id
+
+            // Auto-select working copy if:
+            // - Nothing selected
+            // - Working copy changed (new change created)
+            // - Current selection no longer exists
             let currentSelection = selectedCommit
             let selectionStillExists = currentSelection.map { sel in
                 commits.contains { $0.id == sel.id }
             } ?? false
 
-            if currentSelection == nil || !selectionStillExists {
-                // Select working copy (first commit with isWorkingCopy flag, or just first commit)
-                if let workingCopy = commits.first(where: { $0.isWorkingCopy }) ?? commits.first {
+            if currentSelection == nil || workingCopyChanged || !selectionStillExists {
+                if let workingCopy = newWorkingCopy {
                     selectedCommit = workingCopy
                     selectedCommitChanges = try await runner.fetchDiff(revision: workingCopy.changeId)
                     print("[JJRepository] Auto-selected working copy: \(workingCopy.shortChangeId)")
