@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let openRepository = Notification.Name("openRepository")
+}
+
 @main
 struct JJStatsApp: App {
     var body: some Scene {
@@ -10,7 +14,7 @@ struct JJStatsApp: App {
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("Open Repository...") {
-                    NSApp.sendAction(#selector(NSDocumentController.openDocument(_:)), to: nil, from: nil)
+                    NotificationCenter.default.post(name: .openRepository, object: nil)
                 }
                 .keyboardShortcut("o", modifiers: .command)
             }

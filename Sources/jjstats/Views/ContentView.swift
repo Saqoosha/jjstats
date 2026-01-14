@@ -1,33 +1,37 @@
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @State private var repository: JJRepository?
-    @State private var showingFolderPicker = false
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
         Group {
             if let repository = repository {
-                RepositoryView(repository: repository)
+                RepositoryView(repository: repository, onOpenNew: openFolderPicker)
             } else {
-                WelcomeView(showingFolderPicker: $showingFolderPicker)
-            }
-        }
-        .fileImporter(
-            isPresented: $showingFolderPicker,
-            allowedContentTypes: [.folder],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                if let url = urls.first {
-                    openRepository(at: url.path)
-                }
-            case .failure(let error):
-                print("Error selecting folder: \(error)")
+                WelcomeView(onOpen: openFolderPicker)
             }
         }
         .onOpenURL { url in
+            openRepository(at: url.path)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openRepository)) { _ in
+            openFolderPicker()
+        }
+    }
+
+    private func openFolderPicker() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = false
+        panel.treatsFilePackagesAsDirectories = false
+        panel.showsHiddenFiles = false
+        panel.message = "Select a jj repository folder"
+        panel.prompt = "Select"
+
+        if panel.runModal() == .OK, let url = panel.url {
             openRepository(at: url.path)
         }
     }
@@ -37,6 +41,12 @@ struct ContentView: View {
         let jjPath = (path as NSString).appendingPathComponent(".jj")
         guard FileManager.default.fileExists(atPath: jjPath) else {
             print("Not a jj repository: \(path)")
+            // Show alert
+            let alert = NSAlert()
+            alert.messageText = "Not a jj repository"
+            alert.informativeText = "The selected folder does not contain a .jj directory."
+            alert.alertStyle = .warning
+            alert.runModal()
             return
         }
 
@@ -50,7 +60,7 @@ struct ContentView: View {
 }
 
 struct WelcomeView: View {
-    @Binding var showingFolderPicker: Bool
+    let onOpen: () -> Void
 
     var body: some View {
         VStack(spacing: 20) {
@@ -67,7 +77,7 @@ struct WelcomeView: View {
                 .foregroundStyle(.secondary)
 
             Button("Open Repository...") {
-                showingFolderPicker = true
+                onOpen()
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
@@ -80,6 +90,7 @@ struct WelcomeView: View {
 struct RepositoryView: View {
     @Bindable var repository: JJRepository
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    let onOpenNew: () -> Void
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -97,6 +108,14 @@ struct RepositoryView: View {
         }
         .navigationTitle(repositoryName)
         .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    onOpenNew()
+                } label: {
+                    Label("Open", systemImage: "folder")
+                }
+            }
+
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     Task {
