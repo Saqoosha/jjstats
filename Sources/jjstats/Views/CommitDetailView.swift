@@ -3,6 +3,7 @@ import SwiftUI
 struct CommitDetailView: View {
     let commit: Commit
     let changes: [FileChange]
+    @Bindable var repository: JJRepository
 
     private var formattedDate: String {
         let formatter = DateFormatter()
@@ -28,7 +29,13 @@ struct CommitDetailView: View {
                 // Changed Files Section
                 changedFilesSection
 
-                Spacer(minLength: 20)
+                // Diff Section
+                if let fileDiff = repository.selectedFileDiff,
+                   let fileChange = repository.selectedFileChange {
+                    diffSection(fileDiff: fileDiff, fileChange: fileChange)
+                } else {
+                    Spacer(minLength: 20)
+                }
             }
             .padding(20)
         }
@@ -142,7 +149,19 @@ struct CommitDetailView: View {
                 } else {
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(Array(changes.enumerated()), id: \.element.id) { index, change in
-                            FileChangeRow(change: change)
+                            FileChangeRow(
+                                change: change,
+                                isSelected: repository.selectedFileChange?.id == change.id,
+                                onTap: {
+                                    Task {
+                                        if repository.selectedFileChange?.id == change.id {
+                                            await repository.selectFileChange(nil)
+                                        } else {
+                                            await repository.selectFileChange(change)
+                                        }
+                                    }
+                                }
+                            )
                             if index < changes.count - 1 {
                                 Divider()
                                     .padding(.leading, 24)
@@ -151,6 +170,22 @@ struct CommitDetailView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Diff Section
+
+    private func diffSection(fileDiff: FileDiff, fileChange: FileChange) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader(title: "Diff")
+
+            FileDiffView(fileDiff: fileDiff, fileChange: fileChange)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                )
         }
     }
 }

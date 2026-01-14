@@ -2,6 +2,8 @@ import SwiftUI
 
 struct FileChangeRow: View {
     let change: FileChange
+    var isSelected: Bool = false
+    var onTap: (() -> Void)?
 
     private var statusColor: Color {
         switch change.status {
@@ -49,9 +51,20 @@ struct FileChangeRow: View {
                 .truncationMode(.middle)
 
             Spacer()
+
+            if isSelected {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 4)
+        .background(isSelected ? Color.accentColor.opacity(0.1) : .clear)
+        .cornerRadius(4)
         .contentShape(Rectangle())
+        .onTapGesture {
+            onTap?()
+        }
     }
 }

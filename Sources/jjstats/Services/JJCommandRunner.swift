@@ -64,6 +64,16 @@ actor JJCommandRunner {
         return parseStatusOutput(output)
     }
 
+    func fetchFileDiff(revision: String, filePath: String) async throws -> FileDiff {
+        let output = try await runCommand([
+            "diff",
+            "-r", revision,
+            "--git",
+            filePath
+        ])
+        return parseGitDiff(output, filePath: filePath)
+    }
+
     private func runCommand(_ arguments: [String]) async throws -> String {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: jjPath)
@@ -179,5 +189,122 @@ actor JJCommandRunner {
         }
 
         return changes
+    }
+
+    private func parseGitDiff(_ output: String, filePath: String) -> FileDiff {
+        var hunks: [DiffHunk] = []
+        var additions = 0
+        var deletions = 0
+
+        let lines = output.components(separatedBy: "\n")
+        var currentHunkLines: [DiffLine] = []
+        var currentHunkHeader: String?
+        var oldStart = 0, oldCount = 0, newStart = 0, newCount = 0
+        var oldLineNum = 0
+        var newLineNum = 0
+
+        let hunkHeaderPattern = try! NSRegularExpression(
+            pattern: #"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@"#
+        )
+
+        for line in lines {
+            // Hunk header: @@ -1,4 +1,5 @@
+            if line.hasPrefix("@@") {
+                // Save previous hunk
+                if let header = currentHunkHeader, !currentHunkLines.isEmpty {
+                    hunks.append(DiffHunk(
+                        header: header,
+                        oldStart: oldStart,
+                        oldCount: oldCount,
+                        newStart: newStart,
+                        newCount: newCount,
+                        lines: currentHunkLines
+                    ))
+                }
+
+                // Start new hunk
+                currentHunkHeader = line
+                currentHunkLines = []
+
+                // Parse: @@ -1,4 +1,5 @@
+                let range = NSRange(line.startIndex..., in: line)
+                if let match = hunkHeaderPattern.firstMatch(in: line, range: range) {
+                    oldStart = Int(line[Range(match.range(at: 1), in: line)!])!
+                    oldCount = match.range(at: 2).location != NSNotFound
+                        ? Int(line[Range(match.range(at: 2), in: line)!]) ?? 1
+                        : 1
+                    newStart = Int(line[Range(match.range(at: 3), in: line)!])!
+                    newCount = match.range(at: 4).location != NSNotFound
+                        ? Int(line[Range(match.range(at: 4), in: line)!]) ?? 1
+                        : 1
+                }
+                oldLineNum = oldStart
+                newLineNum = newStart
+                continue
+            }
+
+            guard currentHunkHeader != nil else { continue }
+
+            // Skip file headers
+            if line.hasPrefix("diff --git") ||
+               line.hasPrefix("index ") ||
+               line.hasPrefix("--- ") ||
+               line.hasPrefix("+++ ") ||
+               line.hasPrefix("new file mode") ||
+               line.hasPrefix("deleted file mode") {
+                continue
+            }
+
+            // Parse diff lines
+            if line.hasPrefix("+") {
+                let content = String(line.dropFirst())
+                currentHunkLines.append(DiffLine(
+                    type: .addition,
+                    content: content,
+                    oldLineNumber: nil,
+                    newLineNumber: newLineNum
+                ))
+                newLineNum += 1
+                additions += 1
+            } else if line.hasPrefix("-") {
+                let content = String(line.dropFirst())
+                currentHunkLines.append(DiffLine(
+                    type: .deletion,
+                    content: content,
+                    oldLineNumber: oldLineNum,
+                    newLineNumber: nil
+                ))
+                oldLineNum += 1
+                deletions += 1
+            } else if line.hasPrefix(" ") || (currentHunkHeader != nil && line.isEmpty) {
+                let content = line.isEmpty ? "" : String(line.dropFirst())
+                currentHunkLines.append(DiffLine(
+                    type: .context,
+                    content: content,
+                    oldLineNumber: oldLineNum,
+                    newLineNumber: newLineNum
+                ))
+                oldLineNum += 1
+                newLineNum += 1
+            }
+        }
+
+        // Add last hunk
+        if let header = currentHunkHeader, !currentHunkLines.isEmpty {
+            hunks.append(DiffHunk(
+                header: header,
+                oldStart: oldStart,
+                oldCount: oldCount,
+                newStart: newStart,
+                newCount: newCount,
+                lines: currentHunkLines
+            ))
+        }
+
+        return FileDiff(
+            path: filePath,
+            hunks: hunks,
+            stats: DiffStats(additions: additions, deletions: deletions)
+        )
     }
 }

@@ -10,9 +10,12 @@ final class JJRepository {
     private(set) var commits: [Commit] = []
     private(set) var currentChanges: [FileChange] = []
     private(set) var selectedCommitChanges: [FileChange] = []
+    private(set) var selectedFileDiff: FileDiff?
     private(set) var isLoading = false
+    private(set) var isLoadingFileDiff = false
     private(set) var error: Error?
     var selectedCommit: Commit?
+    var selectedFileChange: FileChange?
 
     let path: String
     private var commandRunner: JJCommandRunner?
@@ -115,6 +118,8 @@ final class JJRepository {
 
     func selectCommit(_ commit: Commit?) async {
         selectedCommit = commit
+        selectedFileChange = nil
+        selectedFileDiff = nil
 
         guard let commit = commit, let runner = commandRunner else {
             selectedCommitChanges = []
@@ -127,5 +132,30 @@ final class JJRepository {
             self.error = error
             selectedCommitChanges = []
         }
+    }
+
+    func selectFileChange(_ change: FileChange?) async {
+        guard let change = change,
+              let commit = selectedCommit,
+              let runner = commandRunner else {
+            selectedFileChange = nil
+            selectedFileDiff = nil
+            return
+        }
+
+        selectedFileChange = change
+        isLoadingFileDiff = true
+
+        do {
+            selectedFileDiff = try await runner.fetchFileDiff(
+                revision: commit.changeId,
+                filePath: change.path
+            )
+        } catch {
+            self.error = error
+            selectedFileDiff = nil
+        }
+
+        isLoadingFileDiff = false
     }
 }

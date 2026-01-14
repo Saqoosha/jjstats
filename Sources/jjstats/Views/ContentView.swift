@@ -143,7 +143,8 @@ struct RepositoryView: View {
             if let commit = repository.selectedCommit {
                 CommitDetailView(
                     commit: commit,
-                    changes: repository.selectedCommitChanges
+                    changes: repository.selectedCommitChanges,
+                    repository: repository
                 )
             } else {
                 EmptyDetailView()
