@@ -77,6 +77,7 @@ actor JJCommandRunner {
     private func runCommand(_ arguments: [String]) async throws -> String {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: jjPath)
+        process.currentDirectoryURL = URL(fileURLWithPath: repoPath)
         process.arguments = ["-R", repoPath] + arguments
         process.environment = ProcessInfo.processInfo.environment
 
