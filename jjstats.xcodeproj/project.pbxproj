@@ -18,6 +18,7 @@
 		C89D99B3F791AB9EF2E09504 /* JJCommandRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797682C2FD474E4E0EBEE036 /* JJCommandRunner.swift */; };
 		D932F7309001B88C4C259786 /* FileChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3491E57B036F02E00A2DFB8B /* FileChange.swift */; };
 		DB2E6FA0532DC45F7B97B249 /* CommitRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6247ECAE1635D46FEF281BA2 /* CommitRow.swift */; };
+		F7A7BB2BB0C2B5B3239315FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A7B8D9DFA8DC7FF7F87EEA /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		797682C2FD474E4E0EBEE036 /* JJCommandRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JJCommandRunner.swift; sourceTree = "<group>"; };
 		7989E0AEDA6A38E63D2E361C /* Commit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Commit.swift; sourceTree = "<group>"; };
 		8208564B031B848954B0C1D9 /* jjstatsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jjstatsApp.swift; sourceTree = "<group>"; };
+		A3A7B8D9DFA8DC7FF7F87EEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B07D3636C7CC641B5DCCCE9A /* FileChangeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChangeRow.swift; sourceTree = "<group>"; };
 		C0A3CEBDF4DA5F07D51E74BE /* JJRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JJRepository.swift; sourceTree = "<group>"; };
 		D581722E78822AC1648B9DE4 /* CommitListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitListView.swift; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 		1E02184FB404C4716B26FF76 /* jjstats */ = {
 			isa = PBXGroup;
 			children = (
+				A3A7B8D9DFA8DC7FF7F87EEA /* Assets.xcassets */,
 				02F571C028CB8836E719960C /* Info.plist */,
 				8208564B031B848954B0C1D9 /* jjstatsApp.swift */,
 				088AC31A52E6DBC48FF98475 /* Models */,
@@ -105,6 +108,8 @@
 			buildConfigurationList = C3662B153018CC5529802844 /* Build configuration list for PBXNativeTarget "jjstats" */;
 			buildPhases = (
 				3DC80F1D197C5A89D54F4640 /* Sources */,
+				104C979C081E1032EAA886FA /* Compile Icon with Liquid Glass */,
+				F48242F32FBEC4FFE6A949E1 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -150,6 +155,39 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F48242F32FBEC4FFE6A949E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7A7BB2BB0C2B5B3239315FE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		104C979C081E1032EAA886FA /* Compile Icon with Liquid Glass */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Compile Icon with Liquid Glass";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "xcrun actool \"${PROJECT_DIR}/Sources/jjstats/Assets.xcassets\" \"${PROJECT_DIR}/Sources/jjstats/AppIcon.icon\" \\\n  --compile \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\" \\\n  --output-format human-readable-text \\\n  --notices --warnings \\\n  --app-icon AppIcon \\\n  --include-all-app-icons \\\n  --enable-on-demand-resources NO \\\n  --development-region en \\\n  --target-device mac \\\n  --minimum-deployment-target \"${MACOSX_DEPLOYMENT_TARGET}\" \\\n  --platform macosx \\\n  --output-partial-info-plist \"${TEMP_DIR}/actool_icon.plist\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3DC80F1D197C5A89D54F4640 /* Sources */ = {
@@ -235,6 +273,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = G5G54TCH8W;
@@ -255,6 +294,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = G5G54TCH8W;
