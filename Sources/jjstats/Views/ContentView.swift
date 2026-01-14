@@ -66,33 +66,69 @@ struct ContentView: View {
     }
 }
 
+// MARK: - Welcome View
+
 struct WelcomeView: View {
     let onOpen: () -> Void
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "folder.badge.questionmark")
-                .font(.system(size: 64))
-                .foregroundStyle(.secondary)
+        ZStack {
+            // Subtle gradient background
+            LinearGradient(
+                colors: [
+                    Color(nsColor: .windowBackgroundColor),
+                    Color(nsColor: .windowBackgroundColor).opacity(0.95)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-            Text("jjstats")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+            VStack(spacing: 24) {
+                // App icon area
+                ZStack {
+                    Circle()
+                        .fill(Color.accentColor.opacity(0.1))
+                        .frame(width: 100, height: 100)
 
-            Text("Open a jj repository to view its history")
-                .font(.body)
-                .foregroundStyle(.secondary)
+                    Image(systemName: "arrow.triangle.branch")
+                        .font(.system(size: 44, weight: .light))
+                        .foregroundStyle(Color.accentColor)
+                }
 
-            Button("Open Repository...") {
-                onOpen()
+                VStack(spacing: 8) {
+                    Text("jjstats")
+                        .font(.largeTitle)
+                        .fontWeight(.semibold)
+
+                    Text("Visualize your Jujutsu repository history")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                }
+
+                Button {
+                    onOpen()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "folder")
+                        Text("Open Repository")
+                    }
+                    .frame(minWidth: 160)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                // Hint text
+                Text("Or drag a folder here")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
     }
 }
+
+// MARK: - Repository View
 
 struct RepositoryView: View {
     @Bindable var repository: JJRepository
@@ -102,7 +138,7 @@ struct RepositoryView: View {
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             CommitListView(repository: repository)
-                .navigationSplitViewColumnWidth(min: 200, ideal: 280, max: 400)
+                .navigationSplitViewColumnWidth(min: 220, ideal: 300, max: 420)
         } detail: {
             if let commit = repository.selectedCommit {
                 CommitDetailView(
@@ -121,6 +157,7 @@ struct RepositoryView: View {
                 } label: {
                     Label("Open", systemImage: "folder")
                 }
+                .help("Open another repository")
             }
 
             ToolbarItem(placement: .primaryAction) {
@@ -132,17 +169,34 @@ struct RepositoryView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 .disabled(repository.isLoading)
+                .help("Refresh repository")
             }
         }
         .overlay {
             if repository.isLoading && repository.commits.isEmpty {
-                ProgressView()
-                    .controlSize(.large)
+                LoadingView()
             }
         }
     }
 
     private var repositoryName: String {
         (repository.path as NSString).lastPathComponent
+    }
+}
+
+// MARK: - Loading View
+
+struct LoadingView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .controlSize(.large)
+
+            Text("Loading repository...")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.ultraThinMaterial)
     }
 }

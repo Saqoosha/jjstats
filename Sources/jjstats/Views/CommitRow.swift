@@ -5,22 +5,18 @@ struct CommitRow: View {
     let isSelected: Bool
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            // Working copy indicator
-            Text(commit.isWorkingCopy ? "@" : "○")
-                .font(.system(.body, design: .monospaced))
-                .foregroundStyle(commit.isWorkingCopy ? .blue : .secondary)
-                .frame(width: 16)
+        HStack(alignment: .center, spacing: 12) {
+            // Working copy indicator - modern dot style
+            WorkingCopyIndicator(isWorkingCopy: commit.isWorkingCopy)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 // Change ID + Bookmarks
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Text(commit.shortChangeId)
-                        .font(.system(.body, design: .monospaced))
-                        .fontWeight(commit.isWorkingCopy ? .semibold : .regular)
+                        .font(.system(size: 14, weight: commit.isWorkingCopy ? .semibold : .regular, design: .monospaced))
                         .foregroundStyle(commit.isWorkingCopy ? .primary : .secondary)
 
-                    // Bookmark badges
+                    // Bookmark badges - more subtle design
                     ForEach(commit.localBookmarks, id: \.self) { bookmark in
                         BookmarkBadge(
                             name: bookmark,
@@ -31,35 +27,69 @@ struct CommitRow: View {
 
                 // Description
                 Text(commit.shortDescription)
-                    .font(.subheadline)
+                    .font(.system(size: 14))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
 
             Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
         .padding(.horizontal, 8)
-        .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
         .contentShape(Rectangle())
     }
 }
+
+// MARK: - Working Copy Indicator
+
+struct WorkingCopyIndicator: View {
+    let isWorkingCopy: Bool
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(isWorkingCopy ? Color.accentColor : Color.clear)
+                .frame(width: 8, height: 8)
+
+            Circle()
+                .strokeBorder(
+                    isWorkingCopy ? Color.accentColor : Color.secondary.opacity(0.4),
+                    lineWidth: isWorkingCopy ? 0 : 1.5
+                )
+                .frame(width: 8, height: 8)
+        }
+        .frame(width: 16, height: 16)
+    }
+}
+
+// MARK: - Bookmark Badge
 
 struct BookmarkBadge: View {
     let name: String
     let isSynced: Bool
 
+    private var backgroundColor: Color {
+        isSynced
+            ? Color.teal.opacity(0.12)
+            : Color.orange.opacity(0.12)
+    }
+
+    private var foregroundColor: Color {
+        isSynced
+            ? Color.teal
+            : Color.orange
+    }
+
     var body: some View {
-        HStack(spacing: 2) {
-            Image(systemName: isSynced ? "checkmark.circle.fill" : "arrow.up.circle")
-                .font(.system(size: 10))
+        HStack(spacing: 4) {
+            Image(systemName: isSynced ? "checkmark.circle.fill" : "arrow.up.circle.fill")
+                .font(.system(size: 11, weight: .medium))
             Text(name)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
         }
-        .padding(.horizontal, 5)
-        .padding(.vertical, 2)
-        .background(isSynced ? Color.teal.opacity(0.25) : Color.orange.opacity(0.3))
-        .foregroundStyle(isSynced ? Color(red: 0, green: 0.5, blue: 0.5) : Color(red: 0.8, green: 0.4, blue: 0))
-        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .foregroundStyle(foregroundColor)
     }
 }
