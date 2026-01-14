@@ -7,6 +7,7 @@ macOS native app for viewing jj (Jujutsu) repository history.
 - Swift 6.0 / SwiftUI
 - macOS 14.0+
 - XcodeGen for project generation
+- jj (Jujutsu) 0.25.0+ for version control
 
 ## Build
 
