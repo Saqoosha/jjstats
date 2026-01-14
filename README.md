@@ -2,11 +2,14 @@
 
 A simple macOS app to view [jj (Jujutsu)](https://github.com/martinvonz/jj) repository history.
 
+![jjstats screenshot](images/jjstats.png)
+
 ## Features
 
 - View commit history in a clean sidebar
 - See changed files for each commit
 - **Inline diff view** - Click on a file to see line-by-line changes (GitHub-style)
+- Git tag display in commit list
 - Auto-refresh when repository changes (via FSEvents)
 - Native macOS app built with SwiftUI
 
