@@ -32,7 +32,8 @@ actor JJCommandRunner {
         if(current_working_copy, "true", "false") ++ "\\x00" ++
         local_bookmarks ++ " " ++ remote_bookmarks ++ "\\x00" ++
         tags ++ "\\x00" ++
-        if(signature, signature.status(), "") ++ "\\x1e"
+        if(signature, signature.status(), "") ++ "\\x00" ++
+        parents.map(|c| c.commit_id()).join(",") ++ "\\x1e"
         """
 
     init(repoPath: String, jjPath: String = "/opt/homebrew/bin/jj") {
@@ -122,7 +123,7 @@ actor JJCommandRunner {
 
         for record in records {
             let fields = record.split(separator: "\u{00}", omittingEmptySubsequences: false)
-            guard fields.count >= 10 else { continue }
+            guard fields.count >= 11 else { continue }
 
             let commitId = String(fields[0])
             let changeId = String(fields[1])
@@ -134,6 +135,7 @@ actor JJCommandRunner {
             let bookmarksStr = String(fields[7]).trimmingCharacters(in: .whitespacesAndNewlines)
             let tagsStr = String(fields[8]).trimmingCharacters(in: .whitespacesAndNewlines)
             let signatureStr = String(fields[9]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let parentIdsStr = String(fields[10]).trimmingCharacters(in: .whitespacesAndNewlines)
 
             let timestamp = dateFormatter.date(from: timestampStr) ?? Date()
 
@@ -146,6 +148,9 @@ actor JJCommandRunner {
             // Parse signature status: "" = unsigned, "good" = valid, etc.
             let signatureStatus: String? = signatureStr.isEmpty ? nil : signatureStr
 
+            // Parse parent commit IDs: "abc123,def456" -> ["abc123", "def456"]
+            let parentIds = parentIdsStr.isEmpty ? [] : parentIdsStr.split(separator: ",").map(String.init)
+
             commits.append(Commit(
                 id: commitId,
                 changeId: changeId,
@@ -156,7 +161,8 @@ actor JJCommandRunner {
                 isWorkingCopy: isWorkingCopy,
                 bookmarks: bookmarks,
                 tags: tags,
-                signatureStatus: signatureStatus
+                signatureStatus: signatureStatus,
+                parentIds: parentIds
             ))
         }
 

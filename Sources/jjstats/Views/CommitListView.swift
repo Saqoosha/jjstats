@@ -2,6 +2,9 @@ import SwiftUI
 
 struct CommitListView: View {
     @Bindable var repository: JJRepository
+    @State private var graphLayout: GraphLayoutResult?
+
+    private let rowHeight: CGFloat = 56  // 44 + padding (6 * 2)
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -14,11 +17,26 @@ struct CommitListView: View {
                     }
                 }
             )) {
-                ForEach(repository.commits) { commit in
-                    CommitRow(
-                        commit: commit,
-                        isSelected: repository.selectedCommit?.id == commit.id
-                    )
+                ForEach(Array(repository.commits.enumerated()), id: \.element.id) { index, commit in
+                    HStack(spacing: 0) {
+                        // Graph column
+                        if let layout = graphLayout, index < layout.rows.count {
+                            GraphColumnView(
+                                row: layout.rows[index],
+                                maxColumn: layout.maxColumn,
+                                rowHeight: rowHeight,
+                                isFirstRow: index == 0,
+                                hasParents: !commit.parentIds.isEmpty
+                            )
+                        }
+
+                        // Commit row
+                        CommitRow(
+                            commit: commit,
+                            isSelected: repository.selectedCommit?.id == commit.id
+                        )
+                    }
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     .tag(commit.id)
                     .id(commit.id)
                 }
@@ -30,6 +48,12 @@ struct CommitListView: View {
                         proxy.scrollTo(id, anchor: .center)
                     }
                 }
+            }
+            .onChange(of: repository.commits) { _, newCommits in
+                graphLayout = GraphLayoutCalculator.calculate(commits: newCommits)
+            }
+            .onAppear {
+                graphLayout = GraphLayoutCalculator.calculate(commits: repository.commits)
             }
         }
     }

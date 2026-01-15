@@ -15,10 +15,7 @@ struct CommitRow: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            // Working copy indicator - modern dot style
-            WorkingCopyIndicator(isWorkingCopy: commit.isWorkingCopy)
-
+        HStack(alignment: .center, spacing: 8) {
             VStack(alignment: .leading, spacing: 4) {
                 // First line: Change ID + Timestamp
                 HStack(spacing: 6) {

@@ -10,9 +10,11 @@
 		1CF182BE7C50C4F4D04881DC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CFD82EC3FC1A6B5B19384DF /* ContentView.swift */; };
 		1EE6AA316AA6A7D0E0CA3113 /* Commit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7989E0AEDA6A38E63D2E361C /* Commit.swift */; };
 		4BFF003741EAD664A91EE1A8 /* jjstatsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8208564B031B848954B0C1D9 /* jjstatsApp.swift */; };
+		4C46DE0E1347E051FF043303 /* GraphLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DEC28B544FE652B93B6D48D /* GraphLayout.swift */; };
 		577760C93B8095D912FE544E /* FileChangeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07D3636C7CC641B5DCCCE9A /* FileChangeRow.swift */; };
 		5A54D922B10A324E3CBC7492 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03145AF537908F44D1CD458C /* FileWatcher.swift */; };
 		69C72D334BC58C0FB889AEF7 /* FileDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CDBA98F43413A60605F6D0C /* FileDiffView.swift */; };
+		71BDA01D4708AE767F5BDBA9 /* GraphLayoutCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64C0CCBA2A869DBADD8E677 /* GraphLayoutCalculator.swift */; };
 		79411E3F3FF10769455FDF6E /* JJRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A3CEBDF4DA5F07D51E74BE /* JJRepository.swift */; };
 		9412AEDE1F2233F45898985F /* CommitListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D581722E78822AC1648B9DE4 /* CommitListView.swift */; };
 		A40CE9BF12AC11E0C8CD4CEC /* CommitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD02FF8D02F9116473B9A0C /* CommitDetailView.swift */; };
@@ -20,6 +22,7 @@
 		D932F7309001B88C4C259786 /* FileChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3491E57B036F02E00A2DFB8B /* FileChange.swift */; };
 		DB2E6FA0532DC45F7B97B249 /* CommitRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6247ECAE1635D46FEF281BA2 /* CommitRow.swift */; };
 		E877A3C81445E57C9146D4A0 /* FileDiff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36095FFFB16CCAF8A0388A0F /* FileDiff.swift */; };
+		F1BEF97A08D3169161062747 /* GraphColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74786FEA866121EA906C8CB /* GraphColumnView.swift */; };
 		F7A7BB2BB0C2B5B3239315FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A7B8D9DFA8DC7FF7F87EEA /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -27,6 +30,7 @@
 		02F571C028CB8836E719960C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		03145AF537908F44D1CD458C /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
 		0CDBA98F43413A60605F6D0C /* FileDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDiffView.swift; sourceTree = "<group>"; };
+		1DEC28B544FE652B93B6D48D /* GraphLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphLayout.swift; sourceTree = "<group>"; };
 		3491E57B036F02E00A2DFB8B /* FileChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChange.swift; sourceTree = "<group>"; };
 		36095FFFB16CCAF8A0388A0F /* FileDiff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDiff.swift; sourceTree = "<group>"; };
 		4CFD82EC3FC1A6B5B19384DF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -36,9 +40,11 @@
 		8208564B031B848954B0C1D9 /* jjstatsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jjstatsApp.swift; sourceTree = "<group>"; };
 		A3A7B8D9DFA8DC7FF7F87EEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B07D3636C7CC641B5DCCCE9A /* FileChangeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChangeRow.swift; sourceTree = "<group>"; };
+		B64C0CCBA2A869DBADD8E677 /* GraphLayoutCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphLayoutCalculator.swift; sourceTree = "<group>"; };
 		C0A3CEBDF4DA5F07D51E74BE /* JJRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JJRepository.swift; sourceTree = "<group>"; };
 		D581722E78822AC1648B9DE4 /* CommitListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitListView.swift; sourceTree = "<group>"; };
 		DE8604991C1D41FD551EF1A9 /* jjstats.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = jjstats.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F74786FEA866121EA906C8CB /* GraphColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphColumnView.swift; sourceTree = "<group>"; };
 		FAD02FF8D02F9116473B9A0C /* CommitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -55,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				03145AF537908F44D1CD458C /* FileWatcher.swift */,
+				B64C0CCBA2A869DBADD8E677 /* GraphLayoutCalculator.swift */,
 				797682C2FD474E4E0EBEE036 /* JJCommandRunner.swift */,
 			);
 			path = Services;
@@ -66,6 +73,7 @@
 				7989E0AEDA6A38E63D2E361C /* Commit.swift */,
 				3491E57B036F02E00A2DFB8B /* FileChange.swift */,
 				36095FFFB16CCAF8A0388A0F /* FileDiff.swift */,
+				1DEC28B544FE652B93B6D48D /* GraphLayout.swift */,
 				C0A3CEBDF4DA5F07D51E74BE /* JJRepository.swift */,
 			);
 			path = Models;
@@ -102,6 +110,7 @@
 				4CFD82EC3FC1A6B5B19384DF /* ContentView.swift */,
 				B07D3636C7CC641B5DCCCE9A /* FileChangeRow.swift */,
 				0CDBA98F43413A60605F6D0C /* FileDiffView.swift */,
+				F74786FEA866121EA906C8CB /* GraphColumnView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -210,6 +219,9 @@
 				E877A3C81445E57C9146D4A0 /* FileDiff.swift in Sources */,
 				69C72D334BC58C0FB889AEF7 /* FileDiffView.swift in Sources */,
 				5A54D922B10A324E3CBC7492 /* FileWatcher.swift in Sources */,
+				F1BEF97A08D3169161062747 /* GraphColumnView.swift in Sources */,
+				4C46DE0E1347E051FF043303 /* GraphLayout.swift in Sources */,
+				71BDA01D4708AE767F5BDBA9 /* GraphLayoutCalculator.swift in Sources */,
 				C89D99B3F791AB9EF2E09504 /* JJCommandRunner.swift in Sources */,
 				79411E3F3FF10769455FDF6E /* JJRepository.swift in Sources */,
 				4BFF003741EAD664A91EE1A8 /* jjstatsApp.swift in Sources */,
