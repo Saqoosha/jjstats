@@ -14,6 +14,7 @@ struct JJStatsApp: App {
             ContentView()
                 .withOpenWindowCapture(appDelegate: appDelegate)
         }
+        .defaultSize(width: 900, height: 600)
         .windowStyle(.automatic)
         .commands {
             CommandGroup(replacing: .newItem) {
@@ -67,7 +68,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 NotificationCenter.default.post(name: .openRepository, object: nil)
             }
         } else if let openWindow = openWindowAction {
-            // Use the captured openWindow action from SwiftUI
             openWindow()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 NotificationCenter.default.post(name: .openRepository, object: nil)
