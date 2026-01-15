@@ -147,27 +147,52 @@ struct TagBadge: View {
 struct SignatureBadge: View {
     let status: String
 
+    private var isError: Bool {
+        status.lowercased().hasPrefix("error") || status.lowercased().contains("error:")
+    }
+
     var icon: String {
+        if isError {
+            return "exclamationmark.triangle.fill"
+        }
         switch status {
-        case "good": "checkmark.seal.fill"
-        case "bad": "xmark.seal.fill"
-        default: "questionmark.seal.fill"
+        case "good": return "checkmark.seal.fill"
+        case "bad": return "xmark.seal.fill"
+        default: return "questionmark.seal.fill"
         }
     }
 
     var color: Color {
+        if isError {
+            return .orange
+        }
         switch status {
-        case "good": .green
-        case "bad": .red
-        default: .gray
+        case "good": return .green
+        case "bad": return .red
+        default: return .gray
         }
     }
 
     var text: String {
+        if isError {
+            return "Verification Error"
+        }
         switch status {
-        case "good": "Verified"
-        case "bad": "Invalid"
-        default: status.capitalized
+        case "good": return "Verified"
+        case "bad": return "Invalid"
+        default: return status.capitalized
+        }
+    }
+
+    var helpText: String {
+        if isError {
+            // Extract meaningful part of error message
+            return status
+        }
+        switch status {
+        case "good": return "Signature verified"
+        case "bad": return "Signature is invalid"
+        default: return "Signature status: \(status)"
         }
     }
 
@@ -175,6 +200,6 @@ struct SignatureBadge: View {
         Image(systemName: icon)
             .font(.system(size: 14, weight: .medium))
             .foregroundStyle(color)
-            .help(status == "good" ? "Signed (verified)" : "Signed (\(status))")
+            .help(helpText)
     }
 }

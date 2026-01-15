@@ -82,7 +82,14 @@ actor JJCommandRunner {
         process.executableURL = URL(fileURLWithPath: jjPath)
         process.currentDirectoryURL = URL(fileURLWithPath: repoPath)
         process.arguments = ["-R", repoPath] + arguments
-        process.environment = ProcessInfo.processInfo.environment
+
+        // Extend PATH to include common locations for tools like gpg
+        var environment = ProcessInfo.processInfo.environment
+        let additionalPaths = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin"]
+        let currentPath = environment["PATH"] ?? ""
+        let extendedPath = (additionalPaths + [currentPath]).joined(separator: ":")
+        environment["PATH"] = extendedPath
+        process.environment = environment
 
         let stdout = Pipe()
         let stderr = Pipe()
