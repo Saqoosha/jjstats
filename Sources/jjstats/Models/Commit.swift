@@ -52,4 +52,60 @@ struct Commit: Identifiable, Equatable {
     var isMergeCommit: Bool {
         parentIds.count > 1
     }
+
+    /// Sort commits in topological order (children before parents)
+    /// Uses Kahn's algorithm with timestamp as tiebreaker
+    static func topologicalSort(_ commits: [Commit]) -> [Commit] {
+        guard commits.count > 1 else { return commits }
+
+        // Build lookup map
+        let commitMap = Dictionary(uniqueKeysWithValues: commits.map { ($0.id, $0) })
+        let commitIds = Set(commits.map { $0.id })
+
+        // Calculate child count for each commit (only counting commits in our list)
+        var childCount: [String: Int] = [:]
+        for commit in commits {
+            childCount[commit.id] = 0
+        }
+        for commit in commits {
+            for parentId in commit.parentIds where commitIds.contains(parentId) {
+                childCount[parentId, default: 0] += 1
+            }
+        }
+
+        // Start with commits that have no children (heads)
+        // Sort by timestamp (newest first) as tiebreaker
+        var queue = commits
+            .filter { childCount[$0.id] == 0 }
+            .sorted { $0.timestamp > $1.timestamp }
+
+        var result: [Commit] = []
+        var visited = Set<String>()
+
+        while !queue.isEmpty {
+            let commit = queue.removeFirst()
+
+            guard !visited.contains(commit.id) else { continue }
+            visited.insert(commit.id)
+            result.append(commit)
+
+            // Process parents
+            var parentsToAdd: [Commit] = []
+            for parentId in commit.parentIds {
+                guard let parent = commitMap[parentId],
+                      !visited.contains(parentId) else { continue }
+
+                childCount[parentId, default: 0] -= 1
+                if childCount[parentId] == 0 {
+                    parentsToAdd.append(parent)
+                }
+            }
+
+            // Sort parents by timestamp (newest first) and prepend to queue
+            parentsToAdd.sort { $0.timestamp > $1.timestamp }
+            queue.insert(contentsOf: parentsToAdd, at: 0)
+        }
+
+        return result
+    }
 }

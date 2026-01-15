@@ -76,7 +76,7 @@ final class JJRepository {
             async let fetchedCommits = runner.fetchLog()
             async let fetchedStatus = runner.fetchStatus()
 
-            commits = try await fetchedCommits
+            commits = Commit.topologicalSort(try await fetchedCommits)
             currentChanges = try await fetchedStatus
 
             let commitCount = commits.count

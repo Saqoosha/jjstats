@@ -2,17 +2,25 @@ import SwiftUI
 
 struct GraphColumnView: View {
     let row: GraphRow
-    let maxColumn: Int
     let rowHeight: CGFloat
-    let isFirstRow: Bool
-    let hasParents: Bool
 
     private let columnWidth: CGFloat = 16
     private let nodeRadius: CGFloat = 4
     private let lineWidth: CGFloat = 1.5
 
+    /// Calculate width based on actual columns used in this row
     var totalWidth: CGFloat {
-        CGFloat(maxColumn + 1) * columnWidth + 8
+        let maxUsedColumn = rowMaxColumn
+        return CGFloat(maxUsedColumn + 1) * columnWidth + 4
+    }
+
+    /// Maximum column used in this row (node + all lines)
+    private var rowMaxColumn: Int {
+        var maxCol = row.column
+        for line in row.lines {
+            maxCol = max(maxCol, line.fromColumn, line.toColumn)
+        }
+        return maxCol
     }
 
     var body: some View {
@@ -37,14 +45,14 @@ struct GraphColumnView: View {
         let x = columnX(column)
         var path = Path()
 
-        // Line from top of cell to node (only if not first row)
-        if !isFirstRow {
+        // Line from top of cell to node (only if this commit has children)
+        if row.hasChildren {
             path.move(to: CGPoint(x: x, y: 0))
             path.addLine(to: CGPoint(x: x, y: centerY - nodeRadius))
         }
 
-        // Line from node to bottom of cell (only if has parents and not last row with no continuation)
-        if hasParents {
+        // Line from node to bottom of cell (only if has parents)
+        if row.hasParents {
             path.move(to: CGPoint(x: x, y: centerY + nodeRadius))
             path.addLine(to: CGPoint(x: x, y: size.height))
         }
@@ -65,14 +73,8 @@ struct GraphColumnView: View {
         switch line.type {
         case .vertical:
             // Vertical continuation line for other columns (not the main node column)
-            if !isFirstRow {
-                path.move(to: CGPoint(x: startX, y: 0))
-                path.addLine(to: CGPoint(x: startX, y: size.height))
-            } else {
-                // First row: only draw from center down
-                path.move(to: CGPoint(x: startX, y: centerY))
-                path.addLine(to: CGPoint(x: startX, y: size.height))
-            }
+            path.move(to: CGPoint(x: startX, y: 0))
+            path.addLine(to: CGPoint(x: startX, y: size.height))
 
         case .mergeFrom:
             // Merge line: comes from above in another column, curves to node

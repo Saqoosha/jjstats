@@ -23,10 +23,7 @@ struct CommitListView: View {
                         if let layout = graphLayout, index < layout.rows.count {
                             GraphColumnView(
                                 row: layout.rows[index],
-                                maxColumn: layout.maxColumn,
-                                rowHeight: rowHeight,
-                                isFirstRow: index == 0,
-                                hasParents: !commit.parentIds.isEmpty
+                                rowHeight: rowHeight
                             )
                         }
 

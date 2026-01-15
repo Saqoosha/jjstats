@@ -27,6 +27,8 @@ struct GraphRow: Equatable {
     let column: Int           // Column where this commit's node is placed
     let lines: [GraphLine]    // All lines to draw for this row
     let nodeType: GraphNodeType
+    let hasChildren: Bool     // Has line going up (another commit references this as parent)
+    let hasParents: Bool      // Has line going down
 }
 
 /// Result of graph layout calculation

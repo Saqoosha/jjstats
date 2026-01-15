@@ -13,36 +13,55 @@ struct GraphLayoutCalculator {
         // Track active columns: column index -> expected commit ID
         var activeColumns: [Int: String] = [:]
 
-        for commit in commits {
-            // 1. Find which column this commit should be placed in
-            let column = findColumn(for: commit.id, in: &activeColumns)
+        for (index, commit) in commits.enumerated() {
+            let isFirst = index == 0
+
+            // 1. Find all columns expecting this commit
+            let expectingColumns = activeColumns.filter { $0.value == commit.id }.map { $0.key }.sorted()
+
+            // 2. Determine which column this commit will be placed in
+            let column: Int
+            if let firstExpecting = expectingColumns.first {
+                column = firstExpecting
+            } else {
+                // New branch - find a free column
+                column = findFreeColumn(activeColumns, preferring: 0)
+            }
             maxColumn = max(maxColumn, column)
 
-            // 2. Build lines for this row
+            // 3. Build lines for this row
             var lines: [GraphLine] = []
 
-            // Continuation lines for all active columns except this commit's column
-            for (col, _) in activeColumns where col != column {
-                lines.append(GraphLine(fromColumn: col, toColumn: col, type: .vertical))
+            // Continuation lines for active columns that are NOT expecting this commit
+            for (col, expectedId) in activeColumns {
+                if expectedId != commit.id {
+                    lines.append(GraphLine(fromColumn: col, toColumn: col, type: .vertical))
+                }
             }
 
-            // 3. Assign columns for this commit's parents
-            for (index, parentId) in commit.parentIds.enumerated() {
-                if index == 0 {
+            // Lines from other columns expecting this commit (merge lines coming down)
+            for col in expectingColumns where col != column {
+                lines.append(GraphLine(fromColumn: col, toColumn: column, type: .mergeFrom))
+                // Release this column since it merged
+                activeColumns.removeValue(forKey: col)
+            }
+
+            // Release the column we're using (will be reassigned to parent if exists)
+            activeColumns.removeValue(forKey: column)
+
+            // 4. Assign columns for this commit's parents
+            for (parentIndex, parentId) in commit.parentIds.enumerated() {
+                if parentIndex == 0 {
                     // First parent continues in same column
                     activeColumns[column] = parentId
                 } else {
                     // Additional parents (merge sources) get new columns
+                    // Use branchTo: line goes FROM this node TO the new column (downward)
                     let newCol = findFreeColumn(activeColumns, preferring: column + 1)
                     activeColumns[newCol] = parentId
-                    lines.append(GraphLine(fromColumn: newCol, toColumn: column, type: .mergeFrom))
+                    lines.append(GraphLine(fromColumn: column, toColumn: newCol, type: .branchTo))
                     maxColumn = max(maxColumn, newCol)
                 }
-            }
-
-            // 4. If this commit has no parents (root), release the column
-            if commit.parentIds.isEmpty {
-                activeColumns.removeValue(forKey: column)
             }
 
             // 5. Determine node type
@@ -55,42 +74,32 @@ struct GraphLayoutCalculator {
                 nodeType = .normal
             }
 
+            // hasChildren: true if any column was expecting this commit (meaning a child references it)
+            let hasChildren = !expectingColumns.isEmpty
+
             rows.append(GraphRow(
                 commitId: commit.id,
                 column: column,
                 lines: lines,
-                nodeType: nodeType
+                nodeType: nodeType,
+                hasChildren: hasChildren,
+                hasParents: !commit.parentIds.isEmpty
             ))
         }
 
         return GraphLayoutResult(rows: rows, maxColumn: maxColumn)
     }
 
-    /// Find the column for a commit ID, or assign a new one
-    private static func findColumn(for commitId: String, in activeColumns: inout [Int: String]) -> Int {
-        // Check if this commit is already expected in a column
-        for (col, expectedId) in activeColumns {
-            if expectedId == commitId {
-                return col
-            }
-        }
-        // Assign a new column
-        return findFreeColumn(activeColumns, preferring: 0)
-    }
-
     /// Find the lowest free column number
     private static func findFreeColumn(_ activeColumns: [Int: String], preferring preferred: Int) -> Int {
-        var col = preferred
+        // First try the preferred column
+        if activeColumns[preferred] == nil {
+            return preferred
+        }
+        // Then try columns starting from 0
+        var col = 0
         while activeColumns[col] != nil {
             col += 1
-        }
-        // Also check lower columns if preferred wasn't available
-        if col != preferred {
-            for i in 0..<preferred {
-                if activeColumns[i] == nil {
-                    return i
-                }
-            }
         }
         return col
     }
