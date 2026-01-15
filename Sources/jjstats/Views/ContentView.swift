@@ -10,7 +10,9 @@ struct ContentView: View {
             if let repository = repository {
                 RepositoryView(repository: repository, onOpenNew: openFolderPicker)
             } else {
-                WelcomeView(onOpen: openFolderPicker)
+                WelcomeView(onOpen: openFolderPicker, onDrop: { url in
+                    openRepository(at: url.path)
+                })
             }
         }
         .onOpenURL { url in
@@ -70,6 +72,8 @@ struct ContentView: View {
 
 struct WelcomeView: View {
     let onOpen: () -> Void
+    let onDrop: (URL) -> Void
+    @State private var isTargeted = false
 
     var body: some View {
         ZStack {
@@ -124,6 +128,20 @@ struct WelcomeView: View {
                     .foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .overlay {
+            if isTargeted {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.accentColor, lineWidth: 3)
+                    .padding(8)
+            }
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first else { return false }
+            onDrop(url)
+            return true
+        } isTargeted: { targeted in
+            isTargeted = targeted
         }
     }
 }
