@@ -76,3 +76,4 @@ Display:
 - Always analyze the diff first before deciding version
 - Be conservative: when in doubt, use Patch
 - Release notes should describe user-visible changes, not implementation details
+- **Release notes must be written in English**
