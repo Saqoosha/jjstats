@@ -143,6 +143,7 @@ struct CommitDetailView: View {
             GroupBox {
                 Text(commit.description.isEmpty ? "(no description)" : commit.description)
                     .font(.system(size: 14))
+                    .lineSpacing(4)
                     .foregroundStyle(commit.description.isEmpty ? .secondary : .primary)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)

@@ -25,7 +25,7 @@ actor JJCommandRunner {
     // Fields separated by \x00, records separated by \x1e
     private static let logTemplate = """
         commit_id ++ "\\x00" ++ change_id ++ "\\x00" ++
-        description.first_line() ++ "\\x00" ++
+        description ++ "\\x00" ++
         author.name() ++ "\\x00" ++
         author.email() ++ "\\x00" ++
         committer.timestamp().utc().format("%Y-%m-%dT%H:%M:%SZ") ++ "\\x00" ++
