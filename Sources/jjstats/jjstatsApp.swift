@@ -3,6 +3,7 @@ import AppKit
 
 extension Notification.Name {
     static let openRepository = Notification.Name("openRepository")
+    static let openRepositoryAtPath = Notification.Name("openRepositoryAtPath")
 }
 
 @main
@@ -22,6 +23,10 @@ struct JJStatsApp: App {
                     appDelegate.openRepository()
                 }
                 .keyboardShortcut("o", modifiers: .command)
+
+                RecentRepositoriesMenu { path in
+                    appDelegate.openRepository(at: path)
+                }
             }
         }
     }
@@ -50,8 +55,21 @@ extension View {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var openWindowAction: (() -> Void)?
+    nonisolated(unsafe) static var isTerminating = false
+
+    func applicationWillTerminate(_ notification: Notification) {
+        Self.isTerminating = true
+    }
 
     @MainActor func openRepository() {
+        showWindowAndPost(notification: .openRepository, userInfo: nil)
+    }
+
+    @MainActor func openRepository(at path: String) {
+        showWindowAndPost(notification: .openRepositoryAtPath, userInfo: ["path": path])
+    }
+
+    @MainActor private func showWindowAndPost(notification: Notification.Name, userInfo: [String: Any]?) {
         // First try to find and show existing window
         let contentWindows = NSApp.windows.filter { window in
             // Filter out menu bar windows, panels, etc.
@@ -65,12 +83,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                NotificationCenter.default.post(name: .openRepository, object: nil)
+                NotificationCenter.default.post(name: notification, object: nil, userInfo: userInfo)
             }
         } else if let openWindow = openWindowAction {
             openWindow()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                NotificationCenter.default.post(name: .openRepository, object: nil)
+                NotificationCenter.default.post(name: notification, object: nil, userInfo: userInfo)
             }
         }
     }

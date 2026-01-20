@@ -10,9 +10,13 @@ struct ContentView: View {
     var body: some View {
         Group {
             if let repository = repository {
-                RepositoryView(repository: repository, onOpenNew: openFolderPicker)
+                RepositoryView(repository: repository, onOpenNew: openFolderPicker, onSelectRecent: { path in
+                    openRepository(at: path)
+                })
             } else {
-                WelcomeView(onOpen: openFolderPicker, onDrop: { url in
+                WelcomeView(onOpen: openFolderPicker, onSelect: { path in
+                    openRepository(at: path)
+                }, onDrop: { url in
                     openRepository(at: url.path)
                 })
             }
@@ -26,12 +30,16 @@ struct ContentView: View {
             guard windowRef?.isVisible == true else { return }
             openFolderPicker()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openRepositoryAtPath)) { notification in
+            guard windowRef?.isVisible == true else { return }
+            if let path = notification.userInfo?["path"] as? String {
+                openRepository(at: path)
+            }
+        }
         .onAppear {
-            // Delay to allow .openRepository notification to arrive first
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                if repository == nil, let path = lastRepositoryPath {
-                    openRepository(at: path)
-                }
+            // Reopen last repository if app was quit without closing window
+            if repository == nil, let path = lastRepositoryPath {
+                openRepository(at: path)
             }
         }
     }
@@ -68,12 +76,15 @@ struct ContentView: View {
             alert.informativeText = "The selected folder does not contain a .jj directory."
             alert.alertStyle = .warning
             alert.runModal()
+            // Remove from recent if it's invalid
+            RecentRepositoriesManager.shared.removeRepository(path: path)
             return
         }
 
         let repo = JJRepository(path: path)
         repository = repo
         lastRepositoryPath = path
+        RecentRepositoriesManager.shared.addRepository(path: path)
 
         Task {
             await repo.start()
@@ -85,8 +96,10 @@ struct ContentView: View {
 
 struct WelcomeView: View {
     let onOpen: () -> Void
+    let onSelect: (String) -> Void
     let onDrop: (URL) -> Void
     @State private var isTargeted = false
+    @State private var recentManager = RecentRepositoriesManager.shared
 
     var body: some View {
         ZStack {
@@ -139,6 +152,28 @@ struct WelcomeView: View {
                 Text("Or drag a folder here")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
+
+                // Recent repositories
+                if !recentManager.repositories.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Recent")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 4)
+
+                        VStack(spacing: 2) {
+                            ForEach(recentManager.repositories.prefix(5)) { repo in
+                                RecentRepositoryRow(repo: repo) {
+                                    onSelect(repo.path)
+                                }
+                            }
+                        }
+                        .background(Color(nsColor: .controlBackgroundColor))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .frame(maxWidth: 320)
+                    .padding(.top, 8)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -159,12 +194,58 @@ struct WelcomeView: View {
     }
 }
 
+struct RecentRepositoryRow: View {
+    let repo: RecentRepository
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: "folder.fill")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(repo.name)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+
+                    Text(abbreviatePath(repo.path))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+
+    private func abbreviatePath(_ path: String) -> String {
+        let homeDir = FileManager.default.homeDirectoryForCurrentUser.path
+        if path.hasPrefix(homeDir) {
+            return "~" + path.dropFirst(homeDir.count)
+        }
+        return path
+    }
+}
+
 // MARK: - Repository View
 
 struct RepositoryView: View {
     @Bindable var repository: JJRepository
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     let onOpenNew: () -> Void
+    let onSelectRecent: (String) -> Void
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -184,12 +265,10 @@ struct RepositoryView: View {
         .navigationTitle(repositoryName)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    onOpenNew()
-                } label: {
-                    Label("Open", systemImage: "folder")
-                }
-                .help("Open another repository")
+                RecentRepositoriesToolbarMenu(
+                    onSelect: onSelectRecent,
+                    onOpenOther: onOpenNew
+                )
             }
 
             ToolbarItem(placement: .primaryAction) {
@@ -301,7 +380,9 @@ private class WindowFrameManager: NSView, NSWindowDelegate {
     }
 
     nonisolated func windowWillClose(_ notification: Notification) {
-        // Clear last repository path when window is closed
+        // Clear last repository path only when window is explicitly closed
+        // (not when app is quit with Cmd+Q)
+        guard !AppDelegate.isTerminating else { return }
         Task { @MainActor in
             UserDefaults.standard.removeObject(forKey: "lastRepositoryPath")
         }

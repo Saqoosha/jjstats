@@ -22,8 +22,10 @@
 		D932F7309001B88C4C259786 /* FileChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3491E57B036F02E00A2DFB8B /* FileChange.swift */; };
 		DB2E6FA0532DC45F7B97B249 /* CommitRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6247ECAE1635D46FEF281BA2 /* CommitRow.swift */; };
 		E877A3C81445E57C9146D4A0 /* FileDiff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36095FFFB16CCAF8A0388A0F /* FileDiff.swift */; };
+		EC09D245EAFF63DE1C51FFC1 /* RecentRepositoriesMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73501FB8E7C113208E3C8CF4 /* RecentRepositoriesMenu.swift */; };
 		F1BEF97A08D3169161062747 /* GraphColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74786FEA866121EA906C8CB /* GraphColumnView.swift */; };
 		F7A7BB2BB0C2B5B3239315FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A7B8D9DFA8DC7FF7F87EEA /* Assets.xcassets */; };
+		FA80A2898331470CB0E6981F /* RecentRepositoriesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2468357DC5593CC4EC324676 /* RecentRepositoriesManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,10 +33,12 @@
 		03145AF537908F44D1CD458C /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
 		0CDBA98F43413A60605F6D0C /* FileDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDiffView.swift; sourceTree = "<group>"; };
 		1DEC28B544FE652B93B6D48D /* GraphLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphLayout.swift; sourceTree = "<group>"; };
+		2468357DC5593CC4EC324676 /* RecentRepositoriesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentRepositoriesManager.swift; sourceTree = "<group>"; };
 		3491E57B036F02E00A2DFB8B /* FileChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChange.swift; sourceTree = "<group>"; };
 		36095FFFB16CCAF8A0388A0F /* FileDiff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDiff.swift; sourceTree = "<group>"; };
 		4CFD82EC3FC1A6B5B19384DF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		6247ECAE1635D46FEF281BA2 /* CommitRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitRow.swift; sourceTree = "<group>"; };
+		73501FB8E7C113208E3C8CF4 /* RecentRepositoriesMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentRepositoriesMenu.swift; sourceTree = "<group>"; };
 		797682C2FD474E4E0EBEE036 /* JJCommandRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JJCommandRunner.swift; sourceTree = "<group>"; };
 		7989E0AEDA6A38E63D2E361C /* Commit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Commit.swift; sourceTree = "<group>"; };
 		8208564B031B848954B0C1D9 /* jjstatsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jjstatsApp.swift; sourceTree = "<group>"; };
@@ -63,6 +67,7 @@
 				03145AF537908F44D1CD458C /* FileWatcher.swift */,
 				B64C0CCBA2A869DBADD8E677 /* GraphLayoutCalculator.swift */,
 				797682C2FD474E4E0EBEE036 /* JJCommandRunner.swift */,
+				2468357DC5593CC4EC324676 /* RecentRepositoriesManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -111,6 +116,7 @@
 				B07D3636C7CC641B5DCCCE9A /* FileChangeRow.swift */,
 				0CDBA98F43413A60605F6D0C /* FileDiffView.swift */,
 				F74786FEA866121EA906C8CB /* GraphColumnView.swift */,
+				73501FB8E7C113208E3C8CF4 /* RecentRepositoriesMenu.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -224,6 +230,8 @@
 				71BDA01D4708AE767F5BDBA9 /* GraphLayoutCalculator.swift in Sources */,
 				C89D99B3F791AB9EF2E09504 /* JJCommandRunner.swift in Sources */,
 				79411E3F3FF10769455FDF6E /* JJRepository.swift in Sources */,
+				FA80A2898331470CB0E6981F /* RecentRepositoriesManager.swift in Sources */,
+				EC09D245EAFF63DE1C51FFC1 /* RecentRepositoriesMenu.swift in Sources */,
 				4BFF003741EAD664A91EE1A8 /* jjstatsApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
