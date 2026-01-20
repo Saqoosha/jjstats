@@ -19,7 +19,12 @@ struct Commit: Identifiable, Equatable {
     }
 
     var shortDescription: String {
-        description.isEmpty ? "(no description)" : description
+        let firstLine = description
+            .split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+            .first
+            .map(String.init)?
+            .trimmingCharacters(in: .whitespaces) ?? ""
+        return firstLine.isEmpty ? "(no description)" : firstLine
     }
 
     var isSigned: Bool {
@@ -44,6 +49,17 @@ struct Commit: Identifiable, Equatable {
     func isBookmarkSynced(_ bookmark: String) -> Bool {
         guard localBookmarks.contains(bookmark) else { return false }
         return remoteBookmarks.contains { $0.hasPrefix("\(bookmark)@") }
+    }
+
+    /// Remote bookmarks that don't have a corresponding local bookmark
+    /// e.g., if we have "main@origin" but no "main", return ["main"]
+    var remoteOnlyBookmarks: [String] {
+        let localSet = Set(localBookmarks)
+        return remoteBookmarks.compactMap { remote -> String? in
+            guard let atIndex = remote.firstIndex(of: "@") else { return nil }
+            let name = String(remote[..<atIndex])
+            return localSet.contains(name) ? nil : name
+        }
     }
 
     var isRootCommit: Bool {

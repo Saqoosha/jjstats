@@ -115,10 +115,11 @@ struct CommitDetailView: View {
                                     gitHubBaseURL: repository.gitHubBaseURL
                                 )
                             }
-                            ForEach(commit.remoteBookmarks.filter { remote in
-                                !commit.localBookmarks.contains { remote.hasPrefix("\($0)@") }
-                            }, id: \.self) { bookmark in
-                                RemoteBookmarkBadge(name: bookmark)
+                            ForEach(commit.remoteOnlyBookmarks, id: \.self) { bookmark in
+                                RemoteBookmarkWithGitHubLink(
+                                    name: bookmark,
+                                    gitHubBaseURL: repository.gitHubBaseURL
+                                )
                             }
                         }
                     }
@@ -361,11 +362,46 @@ struct RemoteBookmarkBadge: View {
     let name: String
 
     var body: some View {
+        RemoteBookmarkBadgeContent(name: name, hasLink: false)
+    }
+}
+
+struct RemoteBookmarkWithGitHubLink: View {
+    let name: String
+    let gitHubBaseURL: String?
+
+    private var gitHubBranchURL: URL? {
+        guard let baseURL = gitHubBaseURL else { return nil }
+        return URL(string: "\(baseURL)/tree/\(name)")
+    }
+
+    var body: some View {
+        if let url = gitHubBranchURL {
+            Link(destination: url) {
+                RemoteBookmarkBadgeContent(name: name, hasLink: true)
+            }
+            .buttonStyle(.plain)
+            .help("Open on GitHub")
+        } else {
+            RemoteBookmarkBadgeContent(name: name, hasLink: false)
+        }
+    }
+}
+
+struct RemoteBookmarkBadgeContent: View {
+    let name: String
+    let hasLink: Bool
+
+    var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "cloud")
                 .font(.system(size: 11, weight: .medium))
             Text(name)
                 .font(.system(size: 12, weight: .medium))
+            if hasLink {
+                Image(systemName: "arrow.up.forward")
+                    .font(.system(size: 9, weight: .medium))
+            }
         }
         .padding(.horizontal, 7)
         .padding(.vertical, 3)

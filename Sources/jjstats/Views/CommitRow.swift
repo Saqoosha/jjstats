@@ -63,6 +63,11 @@ struct CommitRow: View {
                             isSynced: commit.isBookmarkSynced(bookmark)
                         )
                     }
+
+                    // Remote-only bookmark badges
+                    ForEach(commit.remoteOnlyBookmarks, id: \.self) { bookmark in
+                        RemoteBookmarkBadge(name: bookmark)
+                    }
                 }
             }
         }
