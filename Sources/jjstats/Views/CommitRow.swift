@@ -3,6 +3,7 @@ import SwiftUI
 struct CommitRow: View {
     let commit: Commit
     let isSelected: Bool
+    let repository: JJRepository
 
     private static let relativeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
@@ -37,8 +38,13 @@ struct CommitRow: View {
                 HStack(spacing: 6) {
                     Text(commit.shortDescription)
                         .font(.system(size: 14))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(repository.isOrphaned(commit) ? .secondary : .primary)
                         .lineLimit(1)
+
+                    // Orphaned badge
+                    if repository.isOrphaned(commit) {
+                        OrphanedBadge()
+                    }
 
                     // Signature indicator
                     if commit.isSigned {
@@ -136,6 +142,24 @@ struct TagBadge: View {
         .padding(.vertical, 3)
         .background(Color.purple.opacity(0.12), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
         .foregroundStyle(Color.purple)
+    }
+}
+
+// MARK: - Orphaned Badge
+
+struct OrphanedBadge: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 10, weight: .medium))
+            Text("orphaned")
+                .font(.system(size: 12, weight: .medium))
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(Color.gray.opacity(0.15), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .foregroundStyle(Color.secondary)
+        .help("Empty change with no bookmarks - can be safely abandoned")
     }
 }
 

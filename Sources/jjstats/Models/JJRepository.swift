@@ -14,6 +14,7 @@ final class JJRepository {
     private(set) var isLoading = false
     private(set) var isLoadingFileDiff = false
     private(set) var error: Error?
+    private(set) var gitHubBaseURL: String?  // e.g., "https://github.com/owner/repo"
     var selectedCommit: Commit?
     var selectedFileChange: FileChange?
 
@@ -27,12 +28,30 @@ final class JJRepository {
         commits.first { $0.isWorkingCopy }
     }
 
+    // Orphaned: empty + no bookmark + no children + no description + not working copy
+    func isOrphaned(_ commit: Commit) -> Bool {
+        guard commit.isEmpty,
+              commit.bookmarks.isEmpty,
+              commit.description.isEmpty,
+              !commit.isWorkingCopy else {
+            return false
+        }
+        // Check if any commit has this as a parent (i.e., this commit has children)
+        let hasChildren = commits.contains { $0.parentIds.contains(commit.id) }
+        return !hasChildren
+    }
+
     init(path: String) {
         self.path = path
     }
 
     func start() async {
         commandRunner = JJCommandRunner(repoPath: path)
+
+        // Fetch GitHub remote URL
+        if let runner = commandRunner {
+            gitHubBaseURL = try? await runner.fetchGitRemoteURL().flatMap { parseGitHubURL($0) }
+        }
 
         // Watch only op_heads/heads which changes on real jj operations
         // (jj new, jj commit, jj edit, etc.)
@@ -49,6 +68,26 @@ final class JJRepository {
         fileWatcher?.start()
 
         await refresh()
+    }
+
+    private func parseGitHubURL(_ url: String) -> String? {
+        // Parse various GitHub URL formats:
+        // https://github.com/owner/repo.git
+        // git@github.com:owner/repo.git
+        // https://github.com/owner/repo
+        var normalized = url.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if normalized.hasPrefix("git@github.com:") {
+            // SSH format: git@github.com:owner/repo.git
+            normalized = normalized.replacingOccurrences(of: "git@github.com:", with: "https://github.com/")
+        }
+
+        if normalized.hasSuffix(".git") {
+            normalized = String(normalized.dropLast(4))
+        }
+
+        guard normalized.contains("github.com") else { return nil }
+        return normalized
     }
 
     func stop() {

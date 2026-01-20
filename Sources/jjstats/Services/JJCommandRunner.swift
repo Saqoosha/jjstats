@@ -33,7 +33,8 @@ actor JJCommandRunner {
         local_bookmarks ++ " " ++ remote_bookmarks ++ "\\x00" ++
         tags ++ "\\x00" ++
         if(signature, signature.status(), "") ++ "\\x00" ++
-        parents.map(|c| c.commit_id()).join(",") ++ "\\x1e"
+        parents.map(|c| c.commit_id()).join(",") ++ "\\x00" ++
+        if(empty, "true", "false") ++ "\\x1e"
         """
 
     init(repoPath: String, jjPath: String = "/opt/homebrew/bin/jj") {
@@ -76,6 +77,22 @@ actor JJCommandRunner {
             filePath
         ])
         return parseGitDiff(output, filePath: filePath)
+    }
+
+    func fetchGitRemoteURL() async throws -> String? {
+        let output = try await runCommand(["git", "remote", "list"])
+        // Parse: origin https://github.com/owner/repo.git
+        for line in output.split(separator: "\n") {
+            let parts = line.split(separator: " ", maxSplits: 1)
+            guard parts.count == 2 else { continue }
+            let remoteName = String(parts[0])
+            let url = String(parts[1])
+            // Prefer origin, but accept any GitHub URL
+            if remoteName == "origin" || url.contains("github.com") {
+                return url
+            }
+        }
+        return nil
     }
 
     private func runCommand(_ arguments: [String]) async throws -> String {
@@ -123,7 +140,7 @@ actor JJCommandRunner {
 
         for record in records {
             let fields = record.split(separator: "\u{00}", omittingEmptySubsequences: false)
-            guard fields.count >= 11 else { continue }
+            guard fields.count >= 12 else { continue }
 
             let commitId = String(fields[0])
             let changeId = String(fields[1])
@@ -136,6 +153,7 @@ actor JJCommandRunner {
             let tagsStr = String(fields[8]).trimmingCharacters(in: .whitespacesAndNewlines)
             let signatureStr = String(fields[9]).trimmingCharacters(in: .whitespacesAndNewlines)
             let parentIdsStr = String(fields[10]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let isEmpty = String(fields[11]).trimmingCharacters(in: .whitespacesAndNewlines) == "true"
 
             let timestamp = dateFormatter.date(from: timestampStr) ?? Date()
 
@@ -162,7 +180,8 @@ actor JJCommandRunner {
                 bookmarks: bookmarks,
                 tags: tags,
                 signatureStatus: signatureStatus,
-                parentIds: parentIds
+                parentIds: parentIds,
+                isEmpty: isEmpty
             ))
         }
 

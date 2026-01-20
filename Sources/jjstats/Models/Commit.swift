@@ -12,6 +12,7 @@ struct Commit: Identifiable, Equatable {
     let tags: [String]  // git tags, e.g., ["v1.0.0"]
     let signatureStatus: String?  // nil = unsigned, "good" = valid, "bad" = invalid
     let parentIds: [String]  // parent commit IDs (empty = root, 1 = normal, 2+ = merge)
+    let isEmpty: Bool  // true if commit has no file changes
 
     var shortChangeId: String {
         String(changeId.prefix(8))
@@ -52,6 +53,7 @@ struct Commit: Identifiable, Equatable {
     var isMergeCommit: Bool {
         parentIds.count > 1
     }
+
 
     /// Sort commits in topological order (children before parents)
     /// Uses Kahn's algorithm with timestamp as tiebreaker

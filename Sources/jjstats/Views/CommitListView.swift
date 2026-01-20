@@ -30,7 +30,8 @@ struct CommitListView: View {
                         // Commit row
                         CommitRow(
                             commit: commit,
-                            isSelected: repository.selectedCommit?.id == commit.id
+                            isSelected: repository.selectedCommit?.id == commit.id,
+                            repository: repository
                         )
                     }
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))

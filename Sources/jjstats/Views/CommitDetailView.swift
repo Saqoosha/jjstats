@@ -59,11 +59,14 @@ struct CommitDetailView: View {
                 GridRow {
                     MetadataLabel(icon: "number", text: "Change")
                     HStack(spacing: 8) {
-                        Text(commit.shortChangeId)
+                        CopyableText(text: commit.shortChangeId, fullText: commit.changeId)
                             .font(.system(size: 14, design: .monospaced))
                             .fontWeight(.medium)
                         if commit.isWorkingCopy {
                             WorkingCopyBadge()
+                        }
+                        if repository.isOrphaned(commit) {
+                            OrphanedBadge()
                         }
                     }
                 }
@@ -106,7 +109,11 @@ struct CommitDetailView: View {
                         MetadataLabel(icon: "bookmark", text: "Bookmarks")
                         FlowLayout(spacing: 6) {
                             ForEach(commit.localBookmarks, id: \.self) { bookmark in
-                                BookmarkBadge(name: bookmark, isSynced: commit.isBookmarkSynced(bookmark))
+                                BookmarkWithGitHubLink(
+                                    name: bookmark,
+                                    isSynced: commit.isBookmarkSynced(bookmark),
+                                    gitHubBaseURL: repository.gitHubBaseURL
+                                )
                             }
                             ForEach(commit.remoteBookmarks.filter { remote in
                                 !commit.localBookmarks.contains { remote.hasPrefix("\($0)@") }
@@ -254,6 +261,33 @@ struct WorkingCopyBadge: View {
     }
 }
 
+// MARK: - Copyable Text
+
+struct CopyableText: View {
+    let text: String
+    let fullText: String  // Full text to copy (may differ from displayed text)
+    @State private var copied = false
+
+    init(text: String, fullText: String? = nil) {
+        self.text = text
+        self.fullText = fullText ?? text
+    }
+
+    var body: some View {
+        Text(text)
+            .foregroundStyle(copied ? .green : .primary)
+            .onTapGesture {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(fullText, forType: .string)
+                copied = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    copied = false
+                }
+            }
+            .help("Click to copy")
+    }
+}
+
 // MARK: - Empty Detail View
 
 struct EmptyDetailView: View {
@@ -337,5 +371,65 @@ struct RemoteBookmarkBadge: View {
         .padding(.vertical, 3)
         .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
         .foregroundStyle(Color.blue)
+    }
+}
+
+// MARK: - Bookmark with GitHub Link
+
+struct BookmarkWithGitHubLink: View {
+    let name: String
+    let isSynced: Bool
+    let gitHubBaseURL: String?
+
+    private var gitHubBranchURL: URL? {
+        guard isSynced, let baseURL = gitHubBaseURL else { return nil }
+        return URL(string: "\(baseURL)/tree/\(name)")
+    }
+
+    var body: some View {
+        if let url = gitHubBranchURL {
+            Link(destination: url) {
+                BookmarkBadgeContent(name: name, isSynced: isSynced, hasLink: true)
+            }
+            .buttonStyle(.plain)
+            .help("Open on GitHub")
+        } else {
+            BookmarkBadgeContent(name: name, isSynced: isSynced, hasLink: false)
+        }
+    }
+}
+
+struct BookmarkBadgeContent: View {
+    let name: String
+    let isSynced: Bool
+    let hasLink: Bool
+
+    private var backgroundColor: Color {
+        isSynced
+            ? Color.teal.opacity(0.12)
+            : Color.orange.opacity(0.12)
+    }
+
+    private var foregroundColor: Color {
+        isSynced
+            ? Color.teal
+            : Color.orange
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: isSynced ? "checkmark.circle.fill" : "arrow.up.circle.fill")
+                .font(.system(size: 11, weight: .medium))
+            Text(name)
+                .font(.system(size: 12, weight: .medium))
+            if hasLink {
+                Image(systemName: "arrow.up.forward")
+                    .font(.system(size: 9, weight: .medium))
+            }
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .foregroundStyle(foregroundColor)
     }
 }
